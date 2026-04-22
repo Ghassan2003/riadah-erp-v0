@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { internalauditAPI } from '../api';
+import { internalAuditAPI } from '../api';
 import toast from 'react-hot-toast';
 import {
   ClipboardCheck, AlertTriangle, ListChecks, ShieldCheck,
@@ -91,10 +91,10 @@ export default function InternalAuditPage() {
     setLd(true);
     try {
       const [plansRes, findingsRes, actionsRes, compRes] = await Promise.all([
-        internalauditAPI.getPlans(),
-        internalauditAPI.getFindings(),
-        internalauditAPI.getActions(),
-        internalauditAPI.getComplianceChecks(),
+        internalAuditAPI.getPlans(),
+        internalAuditAPI.getFindings(),
+        internalAuditAPI.getActions(),
+        internalAuditAPI.getComplianceChecks(),
       ]);
       setPlans(plansRes.data.results || plansRes.data || []);
       setFindings(findingsRes.data.results || findingsRes.data || []);
@@ -103,7 +103,7 @@ export default function InternalAuditPage() {
 
       // Load stats separately
       try {
-        const statsRes = await internalauditAPI.getStats();
+        const statsRes = await internalAuditAPI.getStats();
         setStats(statsRes.data || {});
       } catch {
         // Stats non-critical, compute from loaded data
@@ -130,7 +130,7 @@ export default function InternalAuditPage() {
 
   const hCompletePlan = async (id) => {
     try {
-      await internalauditAPI.completePlan(id);
+      await internalAuditAPI.completePlan(id);
       toast.success('تم إكمال خطة التدقيق');
       loadData();
     } catch (err) {
@@ -141,7 +141,7 @@ export default function InternalAuditPage() {
 
   const hResolveFinding = async (id) => {
     try {
-      await internalauditAPI.resolveFinding(id, { status: 'resolved' });
+      await internalAuditAPI.resolveFinding(id, { status: 'resolved' });
       toast.success('تم حل الملاحظة');
       loadData();
     } catch (err) {
@@ -152,7 +152,7 @@ export default function InternalAuditPage() {
 
   const hCompleteAction = async (id) => {
     try {
-      await internalauditAPI.completeAction(id);
+      await internalAuditAPI.completeAction(id);
       toast.success('تم إكمال الإجراء');
       loadData();
     } catch (err) {
@@ -163,7 +163,7 @@ export default function InternalAuditPage() {
 
   const hPerformCheck = async (id) => {
     try {
-      await internalauditAPI.performComplianceCheck(id, { status: 'compliant' });
+      await internalAuditAPI.performComplianceCheck(id, { status: 'compliant' });
       toast.success('تم إجراء فحص التوافق');
       loadData();
     } catch (err) {
@@ -174,7 +174,7 @@ export default function InternalAuditPage() {
 
   const hExport = async () => {
     try {
-      const r = await internalauditAPI.export();
+      const r = await internalAuditAPI.export();
       const u = window.URL.createObjectURL(new Blob([r.data]));
       const a = document.createElement('a');
       a.href = u;
@@ -193,7 +193,7 @@ export default function InternalAuditPage() {
     e.preventDefault();
     setSv(true);
     try {
-      await internalauditAPI.createPlan(planForm);
+      await internalAuditAPI.createPlan(planForm);
       toast.success('تم إنشاء خطة التدقيق بنجاح');
       setModals({ ...modals, plan: false });
       setPlanForm({ name: '', type: '', department: '', start_date: '', lead_auditor: '', risk_level: 'medium' });
@@ -210,7 +210,7 @@ export default function InternalAuditPage() {
     e.preventDefault();
     setSv(true);
     try {
-      await internalauditAPI.createFinding(findingForm);
+      await internalAuditAPI.createFinding(findingForm);
       toast.success('تم تسجيل الملاحظة بنجاح');
       setModals({ ...modals, finding: false });
       setFindingForm({ title: '', plan: '', severity: 'medium', category: '', responsible: '', due_date: '' });
@@ -227,7 +227,7 @@ export default function InternalAuditPage() {
     e.preventDefault();
     setSv(true);
     try {
-      await internalauditAPI.createAction(actionForm);
+      await internalAuditAPI.createAction(actionForm);
       toast.success('تم إنشاء الإجراء بنجاح');
       setModals({ ...modals, action: false });
       setActionForm({ finding: '', description: '', assigned_to: '', priority: 'medium', due_date: '' });

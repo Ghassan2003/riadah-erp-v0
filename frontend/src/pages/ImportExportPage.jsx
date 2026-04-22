@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { importexportAPI } from '../api';
+import { importExportAPI } from '../api';
 import toast from 'react-hot-toast';
 import {
   Search, Plus, X, Eye, Check, Ban, Edit2, Trash2,
@@ -74,25 +74,25 @@ export default function ImportExportPage() {
   const badge = (s) => `px-2.5 py-1 rounded-full text-xs font-medium ${SC[s] || ''}`;
   const Th = ({ children }) => <th className="px-4 py-3 text-right font-medium">{children}</th>;
 
-  useEffect(() => { (async () => { try { setStats((await importexportAPI.getStats()).data); } catch {} })(); }, []);
+  useEffect(() => { (async () => { try { setStats((await importExportAPI.getStats()).data); } catch {} })(); }, []);
 
   useEffect(() => {
     const fetchTab = async () => {
       setLd(true);
       try {
-        if (tab === 'imports') setImports((await importexportAPI.getImports({ search, status: sFilter })).data.results || []);
-        else if (tab === 'exports') setExports((await importexportAPI.getExports({ search, status: sFilter })).data.results || []);
-        else setCustoms((await importexportAPI.getCustoms({ search, status: sFilter })).data.results || []);
+        if (tab === 'imports') setImports((await importExportAPI.getImportOrders({ search, status: sFilter })).data.results || []);
+        else if (tab === 'exports') setExports((await importExportAPI.getExportOrders({ search, status: sFilter })).data.results || []);
+        else setCustoms((await importExportAPI.getCustomsDeclarations({ search, status: sFilter })).data.results || []);
       } catch { toast.error('خطأ في تحميل البيانات'); } finally { setLd(false); }
     };
     fetchTab();
   }, [tab, search, sFilter]);
 
-  const hCreateImport = async (e) => { e.preventDefault(); setSv(true); try { await importexportAPI.createImport({ ...impForm, total_amount: +impForm.total_amount }); toast.success('تم إنشاء أمر الاستيراد بنجاح'); setModals({ ...modals, imp: false }); setImpForm({ supplier: '', port: '', country: '', total_amount: '', expected_arrival: '' }); } catch (err) { toast.error(err.response?.data?.non_field_errors?.[0] || 'خطأ'); } finally { setSv(false); } };
-  const hCreateExport = async (e) => { e.preventDefault(); setSv(true); try { await importexportAPI.createExport({ ...expForm, total_amount: +expForm.total_amount }); toast.success('تم إنشاء أمر التصدير بنجاح'); setModals({ ...modals, exp: false }); setExpForm({ customer: '', destination_country: '', total_amount: '', ship_date: '' }); } catch (err) { toast.error(err.response?.data?.non_field_errors?.[0] || 'خطأ'); } finally { setSv(false); } };
-  const hChangeStatus = async (e) => { e.preventDefault(); if (!selRec) return; setSv(true); try { await importexportAPI.changeStatus(selRec.id, { status: newStatus }); toast.success('تم تحديث الحالة بنجاح'); setModals({ ...modals, status: false }); } catch (err) { toast.error(err.response?.data?.error || 'خطأ'); } finally { setSv(false); } };
-  const hDeleteImport = async (id) => { if (!confirm('هل أنت متأكد من حذف أمر الاستيراد؟')) return; try { await importexportAPI.deleteImport(id); toast.success('تم الحذف بنجاح'); setImports((prev) => prev.filter(i => i.id !== id)); } catch { toast.error('خطأ في الحذف'); } };
-  const hDeleteExport = async (id) => { if (!confirm('هل أنت متأكد من حذف أمر التصدير؟')) return; try { await importexportAPI.deleteExport(id); toast.success('تم الحذف بنجاح'); setExports((prev) => prev.filter(ex => ex.id !== id)); } catch { toast.error('خطأ في الحذف'); } };
+  const hCreateImport = async (e) => { e.preventDefault(); setSv(true); try { await importExportAPI.createImportOrder({ ...impForm, total_amount: +impForm.total_amount }); toast.success('تم إنشاء أمر الاستيراد بنجاح'); setModals({ ...modals, imp: false }); setImpForm({ supplier: '', port: '', country: '', total_amount: '', expected_arrival: '' }); } catch (err) { toast.error(err.response?.data?.non_field_errors?.[0] || 'خطأ'); } finally { setSv(false); } };
+  const hCreateExport = async (e) => { e.preventDefault(); setSv(true); try { await importExportAPI.createExportOrder({ ...expForm, total_amount: +expForm.total_amount }); toast.success('تم إنشاء أمر التصدير بنجاح'); setModals({ ...modals, exp: false }); setExpForm({ customer: '', destination_country: '', total_amount: '', ship_date: '' }); } catch (err) { toast.error(err.response?.data?.non_field_errors?.[0] || 'خطأ'); } finally { setSv(false); } };
+  const hChangeStatus = async (e) => { e.preventDefault(); if (!selRec) return; setSv(true); try { await importExportAPI.changeImportStatus(selRec.id, { status: newStatus }); toast.success('تم تحديث الحالة بنجاح'); setModals({ ...modals, status: false }); } catch (err) { toast.error(err.response?.data?.error || 'خطأ'); } finally { setSv(false); } };
+  const hDeleteImport = async (id) => { if (!confirm('هل أنت متأكد من حذف أمر الاستيراد؟')) return; try { await importExportAPI.changeImportStatus(id, { status: 'cancelled' }); toast.success('تم الحذف بنجاح'); setImports((prev) => prev.filter(i => i.id !== id)); } catch { toast.error('خطأ في الحذف'); } };
+  const hDeleteExport = async (id) => { if (!confirm('هل أنت متأكد من حذف أمر التصدير؟')) return; try { await importExportAPI.changeExportStatus(id, { status: 'cancelled' }); toast.success('تم الحذف بنجاح'); setExports((prev) => prev.filter(ex => ex.id !== id)); } catch { toast.error('خطأ في الحذف'); } };
 
   const openStatusModal = (rec, currentStatus, type) => {
     setSelRec({ ...rec, _type: type });

@@ -596,6 +596,100 @@ def cancel_sales_journal_entry(sales_order):
 
 
 # =============================================
+# Purchases-Accounting Integration
+# =============================================
+
+@db_transaction.atomic
+def create_purchase_journal_entry(purchase_order):
+    """
+    Create a journal entry for a confirmed purchase order.
+    Automatically called when a purchase order is confirmed.
+
+    Debit: Inventory / Purchases (Asset)
+    Credit: Accounts Payable (Liability)
+    """
+    # Get or create default accounts
+    cash_account, _ = Account.objects.get_or_create(
+        code='1001',
+        defaults={
+            'name': 'النقدية والبنوك',
+            'name_en': 'Cash & Banks',
+            'account_type': AccountType.ASSET,
+            'description': 'حساب النقدية والبنوك الافتراضي',
+        }
+    )
+    payable_account, _ = Account.objects.get_or_create(
+        code='2000',
+        defaults={
+            'name': 'الدائنون (المورّدون)',
+            'name_en': 'Accounts Payable',
+            'account_type': AccountType.LIABILITY,
+            'description': 'مبالغ مستحقة للمورّدين',
+        }
+    )
+    purchases_account, _ = Account.objects.get_or_create(
+        code='5000',
+        defaults={
+            'name': 'المشتريات',
+            'name_en': 'Purchases',
+            'account_type': AccountType.EXPENSE,
+            'description': 'حساب المشتريات الرئيسي',
+        }
+    )
+
+    # Create journal entry
+    entry = JournalEntry.objects.create(
+        entry_type='purchase',
+        description=f'أمر الشراء {purchase_order.order_number} - المورّد: {purchase_order.supplier.name}',
+        reference=purchase_order.order_number,
+        entry_date=purchase_order.order_date or timezone.now().date(),
+        created_by=purchase_order.created_by,
+    )
+
+    total_amount = purchase_order.total_amount
+
+    # Debit: Purchases / Inventory account (we received goods)
+    Transaction.objects.create(
+        journal_entry=entry,
+        account=purchases_account,
+        transaction_type='debit',
+        amount=total_amount,
+        description=f'مشتريات من {purchase_order.supplier.name} - {purchase_order.order_number}',
+    )
+
+    # Credit: Payable account (we owe the supplier)
+    Transaction.objects.create(
+        journal_entry=entry,
+        account=payable_account,
+        transaction_type='credit',
+        amount=total_amount,
+        description=f'مبلغ مستحق للمورّد {purchase_order.supplier.name} - {purchase_order.order_number}',
+    )
+
+    # Auto-post the entry
+    entry.post_entry()
+
+    return entry
+
+
+@db_transaction.atomic
+def cancel_purchase_journal_entry(purchase_order):
+    """
+    Reverse the journal entry when a purchase order is cancelled.
+    """
+    entry = JournalEntry.objects.filter(
+        reference=purchase_order.order_number,
+        entry_type='purchase',
+        is_posted=True,
+    ).last()
+
+    if entry:
+        entry.reverse_entry()
+        entry.description = f'[ملغى] {entry.description}'
+        entry.save(update_fields=['description', 'updated_at'])
+
+
+# =============================================
 # PDF Report Generation Views
 # =============================================
 
