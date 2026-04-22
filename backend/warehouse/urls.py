@@ -59,7 +59,8 @@ urlpatterns = [
     path('counts/<int:pk>/delete/', StockCountDeleteView.as_view(), name='count-delete'),
 
     # Excel Export
-    path('warehouses/export/', WarehouseExportView.as_view(), name='warehouse-export'),
+    path('export/', WarehouseExportView.as_view(), name='warehouse-export'),
+    path('warehouses/export/', WarehouseExportView.as_view(), name='warehouse-export-detailed'),
     path('transfers/export/', StockTransferExportView.as_view(), name='transfer-export'),
     path('adjustments/export/', StockAdjustmentExportView.as_view(), name='adjustment-export'),
 ]

@@ -118,7 +118,7 @@ class AttachmentUploadSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text='Content type in format "app_label.model", e.g. "sales.order"',
     )
-    object_id = serializers.PositiveIntegerField(write_only=True)
+    object_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Attachment

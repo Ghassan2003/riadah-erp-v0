@@ -112,7 +112,6 @@ def _handle_invoice_status_change(sender, instance, **kwargs):
             title='تم سداد فاتورة',
             message=f'تم سداد الفاتورة رقم {invoice_number}',
             notification_type='success',
-            notification_type='payment',
             link='/invoicing',
         )
 
@@ -148,7 +147,6 @@ def _handle_contract_status_change(sender, instance, **kwargs):
             roles=['admin'],
             title='تفعيل عقد جديد',
             message=f'تم تفعيل العقد: {contract_title}',
-            notification_type='success',
             notification_type='contract',
             link='/contracts',
         )

@@ -55,5 +55,6 @@ urlpatterns = [
     path('depreciation/', AssetDepreciationView.as_view(), name='asset-depreciation'),
 
     # Excel Export
-    path('assets/export/', AssetExportView.as_view(), name='asset-export'),
+    path('export/', AssetExportView.as_view(), name='asset-export'),
+    path('assets/export/', AssetExportView.as_view(), name='asset-export-detailed'),
 ]
