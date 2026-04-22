@@ -147,6 +147,25 @@ const translations = {
     cronJobs: 'المهام المجدولة',
 
     // ═══════════════════════════════════════
+    // الوحدات الجديدة / New Modules
+    // ═══════════════════════════════════════
+    manufacturingOps: 'التصنيع والعمليات',
+    manufacturing: 'التصنيع',
+    shipping: 'الشحن',
+    importExport: 'الاستيراد والتصدير',
+    budgetAndTenders: 'الميزانية والمناقصات',
+    budget: 'الميزانية',
+    tenders: 'المناقصات',
+    hrAndInsurance: 'التأمين والصيانة',
+    insurance: 'التأمين والمعاشات',
+    equipMaint: 'صيانة المعدات',
+    crmSection: 'إدارة العملاء',
+    crm: 'إدارة علاقات العملاء',
+    complianceSection: 'الحوكمة والتدقيق',
+    internalAudit: 'التدقيق الداخلي',
+    analytics: 'التحليلات المتقدمة',
+
+    // ═══════════════════════════════════════
     // تعليمات الفيديو / Video Instructions
     // ═══════════════════════════════════════
     videoInstructions: 'تعليمات الفيديو',
@@ -1231,6 +1250,23 @@ const translations = {
     errorLog: 'Error Log',
     systemSettings: 'System Settings',
     cronJobs: 'Scheduled Tasks',
+
+    // New Modules
+    manufacturingOps: 'Manufacturing & Operations',
+    manufacturing: 'Manufacturing',
+    shipping: 'Shipping',
+    importExport: 'Import & Export',
+    budgetAndTenders: 'Budget & Tenders',
+    budget: 'Budget',
+    tenders: 'Tenders',
+    hrAndInsurance: 'Insurance & Maintenance',
+    insurance: 'Insurance & Pension',
+    equipMaint: 'Equipment Maintenance',
+    crmSection: 'Customer Management',
+    crm: 'CRM',
+    complianceSection: 'Governance & Audit',
+    internalAudit: 'Internal Audit',
+    analytics: 'Advanced Analytics',
 
     // Video Instructions
     videoInstructions: 'Video Instructions',

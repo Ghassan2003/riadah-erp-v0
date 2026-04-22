@@ -61,6 +61,15 @@ INSTALLED_APPS = [
     'contracts',
     'payments',
     'attachments',
+    'budget',
+    'tenders',
+    'manufacturing',
+    'shipping',
+    'insurance',
+    'importexport',
+    'equipmaint',
+    'crm',
+    'internalaudit',
 ]
 
 MIDDLEWARE = [

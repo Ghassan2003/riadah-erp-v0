@@ -54,6 +54,15 @@ urlpatterns = [
     path('api/contracts/', include('contracts.urls')),
     path('api/payments/', include('payments.urls')),
     path('api/attachments/', include('attachments.urls')),
+    path('api/budget/', include('budget.urls')),
+    path('api/tenders/', include('tenders.urls')),
+    path('api/manufacturing/', include('manufacturing.urls')),
+    path('api/shipping/', include('shipping.urls')),
+    path('api/insurance/', include('insurance.urls')),
+    path('api/import-export/', include('importexport.urls')),
+    path('api/equip-maint/', include('equipmaint.urls')),
+    path('api/crm/', include('crm.urls')),
+    path('api/internal-audit/', include('internalaudit.urls')),
 
     # System endpoints
     path('api/system/info/', core_views.SystemInfoView.as_view(), name='system-info'),

@@ -16,6 +16,7 @@ import {
   ClipboardCheck, FileSpreadsheet, Database, Bug, Settings,
   Clock, Sun, Moon, Languages, ChevronDown, Video,
   Wallet, Receipt, Store, Warehouse as WarehouseIcon, Building2, ScrollText, Landmark, ExternalLink,
+  Calculator, Gavel, Factory, Ship, ShieldCheck, Globe2, Wrench, HeartHandshake, Search, TrendingUp,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { notificationsAPI } from '../api';
@@ -132,6 +133,41 @@ export default function MainLayout() {
         { name: t('products'), path: '/products', icon: Package, roles: ['admin', 'warehouse', 'sales', 'accountant'] },
         { name: t('warehouse'), path: '/warehouse', icon: WarehouseIcon, roles: ['admin', 'warehouse'] },
         { name: t('pos'), path: '/pos', icon: Store, roles: ['admin', 'sales', 'warehouse'] },
+      ],
+    },
+    {
+      title: t('manufacturingOps'),
+      items: [
+        { name: t('manufacturing'), path: '/manufacturing', icon: Factory, roles: ['admin', 'warehouse'] },
+        { name: t('shipping'), path: '/shipping', icon: Ship, roles: ['admin', 'warehouse', 'sales'] },
+        { name: t('importExport'), path: '/import-export', icon: Globe2, roles: ['admin', 'warehouse', 'purchasing'] },
+      ],
+    },
+    {
+      title: t('budgetAndTenders'),
+      items: [
+        { name: t('budget'), path: '/budget', icon: Calculator, roles: ['admin', 'accountant', 'project_manager'] },
+        { name: t('tenders'), path: '/tenders', icon: Gavel, roles: ['admin', 'project_manager'] },
+      ],
+    },
+    {
+      title: t('hrAndInsurance'),
+      items: [
+        { name: t('insurance'), path: '/insurance', icon: ShieldCheck, roles: ['admin', 'hr'] },
+        { name: t('equipMaint'), path: '/equip-maint', icon: Wrench, roles: ['admin', 'warehouse'] },
+      ],
+    },
+    {
+      title: t('crmSection'),
+      items: [
+        { name: t('crm'), path: '/crm', icon: HeartHandshake, roles: ['admin', 'sales'] },
+      ],
+    },
+    {
+      title: t('complianceSection'),
+      items: [
+        { name: t('internalAudit'), path: '/internal-audit', icon: Search, roles: ['admin'] },
+        { name: t('analytics'), path: '/analytics', icon: TrendingUp, roles: ['admin', 'accountant', 'sales'] },
       ],
     },
     {

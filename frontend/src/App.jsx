@@ -51,6 +51,16 @@ const ContractsPage = lazy(() => import('./pages/ContractsPage'));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const AdvancedReportsPage = lazy(() => import('./pages/AdvancedReportsPage'));
+const BudgetPage = lazy(() => import('./pages/BudgetPage'));
+const TendersPage = lazy(() => import('./pages/TendersPage'));
+const ManufacturingPage = lazy(() => import('./pages/ManufacturingPage'));
+const ShippingPage = lazy(() => import('./pages/ShippingPage'));
+const InsurancePage = lazy(() => import('./pages/InsurancePage'));
+const ImportExportPage = lazy(() => import('./pages/ImportExportPage'));
+const EquipMaintPage = lazy(() => import('./pages/EquipMaintPage'));
+const CRMPage = lazy(() => import('./pages/CRMPage'));
+const InternalAuditPage = lazy(() => import('./pages/InternalAuditPage'));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 
 function App() {
   return (
@@ -189,6 +199,72 @@ function App() {
                   <Route path="/pos" element={
                     <ProtectedRoute roles={['admin', 'sales', 'warehouse']}>
                       <POSPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== التصنيع والعمليات ===== */}
+                  <Route path="/manufacturing" element={
+                    <ProtectedRoute roles={['admin', 'warehouse']}>
+                      <ManufacturingPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/shipping" element={
+                    <ProtectedRoute roles={['admin', 'warehouse', 'sales']}>
+                      <ShippingPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== الميزانية والعقود ===== */}
+                  <Route path="/budget" element={
+                    <ProtectedRoute roles={['admin', 'accountant', 'project_manager']}>
+                      <BudgetPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/tenders" element={
+                    <ProtectedRoute roles={['admin', 'project_manager']}>
+                      <TendersPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== الاستيراد والتصدير ===== */}
+                  <Route path="/import-export" element={
+                    <ProtectedRoute roles={['admin', 'warehouse', 'purchasing']}>
+                      <ImportExportPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== إدارة العملاء CRM ===== */}
+                  <Route path="/crm" element={
+                    <ProtectedRoute roles={['admin', 'sales']}>
+                      <CRMPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== التأمين ===== */}
+                  <Route path="/insurance" element={
+                    <ProtectedRoute roles={['admin', 'hr']}>
+                      <InsurancePage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== صيانة المعدات ===== */}
+                  <Route path="/equip-maint" element={
+                    <ProtectedRoute roles={['admin', 'warehouse']}>
+                      <EquipMaintPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== التدقيق الداخلي ===== */}
+                  <Route path="/internal-audit" element={
+                    <ProtectedRoute roles={['admin']}>
+                      <InternalAuditPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* ===== التحليلات المتقدمة ===== */}
+                  <Route path="/analytics" element={
+                    <ProtectedRoute roles={['admin', 'accountant', 'sales']}>
+                      <AnalyticsPage />
                     </ProtectedRoute>
                   } />
 

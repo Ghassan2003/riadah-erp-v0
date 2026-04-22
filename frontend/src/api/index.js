@@ -645,4 +645,180 @@ export const attachmentsAPI = {
   bulkDelete: (ids) => api.post('/attachments/bulk-delete/', { ids }),
 };
 
+// Budget API
+export const budgetAPI = {
+  getStats: () => api.get('/budget/stats/'),
+  getBudgets: (params) => api.get('/budget/budgets/', { params }),
+  getBudget: (id) => api.get(`/budget/budgets/${id}/`),
+  deleteBudget: (id) => api.delete(`/budget/budgets/${id}/delete/`),
+  getCategories: (params) => api.get('/budget/categories/', { params }),
+  getCategory: (id) => api.get(`/budget/categories/${id}/`),
+  getItems: (params) => api.get('/budget/items/', { params }),
+  getItem: (id) => api.get(`/budget/items/${id}/`),
+  getTransfers: (params) => api.get('/budget/transfers/', { params }),
+  approveTransfer: (id) => api.post(`/budget/transfers/${id}/approve/`),
+  getExpenses: (params) => api.get('/budget/expenses/', { params }),
+  approveExpense: (id) => api.post(`/budget/expenses/${id}/approve/`),
+  export: () => api.get('/budget/export/', { responseType: 'blob' }),
+};
+
+// Tenders API
+export const tendersAPI = {
+  getStats: () => api.get('/tenders/stats/'),
+  getTenders: (params) => api.get('/tenders/', { params }),
+  getTender: (id) => api.get(`/tenders/${id}/`),
+  deleteTender: (id) => api.delete(`/tenders/${id}/delete/`),
+  publishTender: (id) => api.post(`/tenders/${id}/publish/`),
+  getDocuments: (params) => api.get('/tenders/documents/', { params }),
+  getDocument: (id) => api.get(`/tenders/documents/${id}/`),
+  getBids: (params) => api.get('/tenders/bids/', { params }),
+  getBid: (id) => api.get(`/tenders/bids/${id}/`),
+  disqualifyBid: (id) => api.post(`/tenders/bids/${id}/disqualify/`),
+  getEvaluations: (params) => api.get('/tenders/evaluations/', { params }),
+  getEvaluation: (id) => api.get(`/tenders/evaluations/${id}/`),
+  getAwards: (params) => api.get('/tenders/awards/', { params }),
+  createAward: (data) => api.post('/tenders/awards/create/', data),
+  getAward: (id) => api.get(`/tenders/awards/${id}/`),
+  approveAward: (id) => api.post(`/tenders/awards/${id}/approve/`),
+  export: () => api.get('/tenders/export/', { responseType: 'blob' }),
+};
+
+// Manufacturing API
+export const manufacturingAPI = {
+  getStats: () => api.get('/manufacturing/stats/'),
+  getBOMs: (params) => api.get('/manufacturing/boms/', { params }),
+  getBOM: (id) => api.get(`/manufacturing/boms/${id}/`),
+  getBOMItems: (params) => api.get('/manufacturing/boms/items/', { params }),
+  getBOMItem: (id) => api.get(`/manufacturing/boms/items/${id}/`),
+  getOrders: (params) => api.get('/manufacturing/orders/', { params }),
+  getOrder: (id) => api.get(`/manufacturing/orders/${id}/`),
+  startOrder: (id) => api.post(`/manufacturing/orders/${id}/start/`),
+  completeOrder: (id) => api.post(`/manufacturing/orders/${id}/complete/`),
+  cancelOrder: (id) => api.post(`/manufacturing/orders/${id}/cancel/`),
+  getLogs: (params) => api.get('/manufacturing/logs/', { params }),
+  getWorkCenters: (params) => api.get('/manufacturing/work-centers/', { params }),
+  getWorkCenter: (id) => api.get(`/manufacturing/work-centers/${id}/`),
+  getRoutingSteps: (params) => api.get('/manufacturing/routing-steps/', { params }),
+  getRoutingStep: (id) => api.get(`/manufacturing/routing-steps/${id}/`),
+  export: () => api.get('/manufacturing/export/', { responseType: 'blob' }),
+};
+
+// Shipping API
+export const shippingAPI = {
+  getStats: () => api.get('/shipping/stats/'),
+  getMethods: (params) => api.get('/shipping/methods/', { params }),
+  getMethod: (id) => api.get(`/shipping/methods/${id}/`),
+  getShipments: (params) => api.get('/shipping/shipments/', { params }),
+  getShipment: (id) => api.get(`/shipping/shipments/${id}/`),
+  changeShipmentStatus: (id, data) => api.post(`/shipping/shipments/${id}/change-status/`, data),
+  getItems: (params) => api.get('/shipping/items/', { params }),
+  getItem: (id) => api.get(`/shipping/items/${id}/`),
+  getEvents: (params) => api.get('/shipping/events/', { params }),
+  createEvent: (data) => api.post('/shipping/events/create/', data),
+  getDeliveryAttempts: (params) => api.get('/shipping/delivery-attempts/', { params }),
+  export: () => api.get('/shipping/export/', { responseType: 'blob' }),
+};
+
+// Insurance API
+export const insuranceAPI = {
+  getStats: () => api.get('/insurance/stats/'),
+  getPolicies: (params) => api.get('/insurance/policies/', { params }),
+  createPolicy: (data) => api.post('/insurance/policies/create/', data),
+  getPolicy: (id) => api.get(`/insurance/policies/${id}/`),
+  getClaims: (params) => api.get('/insurance/claims/', { params }),
+  submitClaim: (data) => api.post('/insurance/claims/submit/', data),
+  getClaim: (id) => api.get(`/insurance/claims/${id}/`),
+  reviewClaim: (id, data) => api.post(`/insurance/claims/${id}/review/`, data),
+  getPensions: (params) => api.get('/insurance/pensions/', { params }),
+  createPension: (data) => api.post('/insurance/pensions/create/', data),
+  getPension: (id) => api.get(`/insurance/pensions/${id}/`),
+  getPensionPayments: (params) => api.get('/insurance/pension-payments/', { params }),
+  createPensionPayment: (data) => api.post('/insurance/pension-payments/create/', data),
+  export: () => api.get('/insurance/export/', { responseType: 'blob' }),
+};
+
+// Import/Export API
+export const importExportAPI = {
+  getStats: () => api.get('/import-export/stats/'),
+  getImportOrders: (params) => api.get('/import-export/import-orders/', { params }),
+  createImportOrder: (data) => api.post('/import-export/import-orders/create/', data),
+  getImportOrder: (id) => api.get(`/import-export/import-orders/${id}/`),
+  changeImportStatus: (id, data) => api.post(`/import-export/import-orders/${id}/change-status/`, data),
+  getImportItems: (params) => api.get('/import-export/import-items/', { params }),
+  getImportItem: (id) => api.get(`/import-export/import-items/${id}/`),
+  getExportOrders: (params) => api.get('/import-export/export-orders/', { params }),
+  createExportOrder: (data) => api.post('/import-export/export-orders/create/', data),
+  getExportOrder: (id) => api.get(`/import-export/export-orders/${id}/`),
+  changeExportStatus: (id, data) => api.post(`/import-export/export-orders/${id}/change-status/`, data),
+  getExportItems: (params) => api.get('/import-export/export-items/', { params }),
+  getExportItem: (id) => api.get(`/import-export/export-items/${id}/`),
+  getCustomsDeclarations: (params) => api.get('/import-export/customs-declarations/', { params }),
+  createCustomsDeclaration: (data) => api.post('/import-export/customs-declarations/create/', data),
+  getCustomsDeclaration: (id) => api.get(`/import-export/customs-declarations/${id}/`),
+  changeCustomsStatus: (id, data) => api.post(`/import-export/customs-declarations/${id}/change-status/`, data),
+  export: () => api.get('/import-export/export/', { responseType: 'blob' }),
+};
+
+// Equipment Maintenance API
+export const equipMaintAPI = {
+  getStats: () => api.get('/equip-maint/stats/'),
+  getEquipment: (params) => api.get('/equip-maint/equipment/', { params }),
+  createEquipment: (data) => api.post('/equip-maint/equipment/create/', data),
+  getEquipmentDetail: (id) => api.get(`/equip-maint/equipment/${id}/`),
+  getSchedules: (params) => api.get('/equip-maint/schedules/', { params }),
+  getSchedule: (id) => api.get(`/equip-maint/schedules/${id}/`),
+  getWorkOrders: (params) => api.get('/equip-maint/work-orders/', { params }),
+  createWorkOrder: (data) => api.post('/equip-maint/work-orders/create/', data),
+  getWorkOrder: (id) => api.get(`/equip-maint/work-orders/${id}/`),
+  approveWorkOrder: (id) => api.post(`/equip-maint/work-orders/${id}/approve/`),
+  startWorkOrder: (id) => api.post(`/equip-maint/work-orders/${id}/start/`),
+  completeWorkOrder: (id) => api.post(`/equip-maint/work-orders/${id}/complete/`),
+  getParts: (params) => api.get('/equip-maint/parts/', { params }),
+  getPart: (id) => api.get(`/equip-maint/parts/${id}/`),
+  getInspections: (params) => api.get('/equip-maint/inspections/', { params }),
+  createInspection: (data) => api.post('/equip-maint/inspections/create/', data),
+  export: () => api.get('/equip-maint/export/', { responseType: 'blob' }),
+};
+
+// CRM API
+export const crmAPI = {
+  getStats: () => api.get('/crm/stats/'),
+  getContacts: (params) => api.get('/crm/contacts/', { params }),
+  getContact: (id) => api.get(`/crm/contacts/${id}/`),
+  getLeads: (params) => api.get('/crm/leads/', { params }),
+  getLead: (id) => api.get(`/crm/leads/${id}/`),
+  changeLeadStatus: (id, data) => api.post(`/crm/leads/${id}/change-status/`, data),
+  getLeadActivities: (leadId) => api.get(`/crm/leads/${leadId}/activities/`),
+  completeLeadActivity: (id) => api.post(`/crm/leads/activities/${id}/complete/`),
+  getSegments: (params) => api.get('/crm/segments/', { params }),
+  getSegment: (id) => api.get(`/crm/segments/${id}/`),
+  getCampaigns: (params) => api.get('/crm/campaigns/', { params }),
+  getCampaign: (id) => api.get(`/crm/campaigns/${id}/`),
+  changeCampaignStatus: (id, data) => api.post(`/crm/campaigns/${id}/change-status/`, data),
+  getCampaignActivities: (campaignId) => api.get(`/crm/campaigns/${campaignId}/activities/`),
+  export: () => api.get('/crm/export/', { responseType: 'blob' }),
+};
+
+// Internal Audit API
+export const internalAuditAPI = {
+  getStats: () => api.get('/internal-audit/stats/'),
+  getPlans: (params) => api.get('/internal-audit/plans/', { params }),
+  getPlan: (id) => api.get(`/internal-audit/plans/${id}/`),
+  completePlan: (id) => api.post(`/internal-audit/plans/${id}/complete/`),
+  getFindings: (params) => api.get('/internal-audit/findings/', { params }),
+  getFinding: (id) => api.get(`/internal-audit/findings/${id}/`),
+  createFinding: (data) => api.post('/internal-audit/findings/create/', data),
+  resolveFinding: (id, data) => api.post(`/internal-audit/findings/${id}/resolve/`, data),
+  getEvidence: (params) => api.get('/internal-audit/evidence/', { params }),
+  createEvidence: (data) => api.post('/internal-audit/evidence/create/', data),
+  getActions: (params) => api.get('/internal-audit/actions/', { params }),
+  getAction: (id) => api.get(`/internal-audit/actions/${id}/`),
+  createAction: (data) => api.post('/internal-audit/actions/create/', data),
+  completeAction: (id) => api.post(`/internal-audit/actions/${id}/complete/`),
+  getComplianceChecks: (params) => api.get('/internal-audit/compliance/', { params }),
+  getComplianceCheck: (id) => api.get(`/internal-audit/compliance/${id}/`),
+  performComplianceCheck: (id, data) => api.post(`/internal-audit/compliance/${id}/perform/`, data),
+  export: () => api.get('/internal-audit/export/', { responseType: 'blob' }),
+};
+
 export default api;
