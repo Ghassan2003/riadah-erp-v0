@@ -1,102 +1,113 @@
-# نظام ERP - المرحلة 2: وحدة إدارة المخزون
+# نظام RIADAH ERP
 
-## وصف المشروع
-
-نظام تخطيط موارد المؤسسة (ERP) مبسط وقابل للتوسع بشكل تدريجي. يتم تطويره على 5 مراحل، وهذه هي **المرحلة 2** التي تتضمن وحدة إدارة المخزون (Inventory).
+نظام تخطيط موارد المؤسسة (ERP) متكامل مبني بتقنيات حديثة.
 
 ## المتطلبات التقنية
 
 | المكون | التقنية |
 |---------|---------|
-| Backend | Django 4.2 + Django REST Framework |
+| Backend | Django 4.2 + Django REST Framework + Channels |
 | Frontend | React 18 + Vite 5 + TailwindCSS 3 |
-| Database | PostgreSQL 15 (Docker) / SQLite (محلي) |
-| Authentication | JWT (djangorestframework-simplejwt) |
-| API Documentation | Django REST Framework Browsable API |
+| Database | SQLite (محلي) / PostgreSQL (Docker) |
+| Authentication | JWT (SimpleJWT) |
+| Real-time | Django Channels + WebSocket |
 | Containerization | Docker + Docker Compose |
 
+## الوحدات المتاحة (20+ وحدة)
+
+| الوحدة | الوصف |
+|--------|-------|
+| `users` | المصادقة والصلاحيات (7 أدوار) |
+| `inventory` | إدارة المنتجات والمخزون |
+| `sales` | المبيعات وإدارة العملاء |
+| `purchases` | المشتريات والموردين |
+| `accounting` | المحاسبة والقوائم المالية |
+| `hr` | الموارد البشرية (موظفين، حضور، إجازات) |
+| `payroll` | الرواتب والسلف والقروض |
+| `warehouse` | إدارة المستودعات والتحويلات |
+| `projects` | إدارة المشاريع والمهام |
+| `contracts` | العقود والمراحل |
+| `invoicing` | الفواتير والتذاكر |
+| `payments` | المدفوعات والشيكات |
+| `pos` | نقطة البيع |
+| `assets` | الأصول الثابتة والإهلاك |
+| `notifications` | الإشعارات (WebSocket) |
+| `auditlog` | سجل التدقيق |
+| `maintenance` | الصيانة والنسخ الاحتياطي |
+| `documents` | إدارة المستندات |
+| `videos` | مكتبة الفيديوهات التعليمية |
+| `attachments` | نظام المرفقات العام |
+
+## الأدوار (7 أدوار)
+
+| الدور | الكود | الصلاحيات |
+|-------|-------|-----------|
+| مدير النظام | `admin` | كل شيء |
+| المبيعات | `sales` | المبيعات والعملاء |
+| المحاسب | `accountant` | المحاسبة والقوائم |
+| المخازن | `warehouse` | المخزون والمستودعات |
+| الموارد البشرية | `hr` | الموظفين والرواتب |
+| المشتريات | `purchasing` | المشتريات والموردين |
+| مدير المشاريع | `project_manager` | المشاريع والمهام |
+
 ---
 
-## طريقة التشغيل
+## التشغيل المحلي (بدون Docker)
 
-### الخيار 1: التشغيل عبر Docker (موصى به)
+### المتطلبات المسبقة
+- **Python 3.10+** — [تحميل](https://www.python.org/downloads/)
+- **Node.js 18+** — [تحميل](https://nodejs.org/)
+- **pip** و **npm**
 
-#### المتطلبات المسبقة
-- Docker Desktop أو Docker Engine
-- Docker Compose
-
-#### الخطوات
-
-1. **انتقل إلى مجلد المشروع:**
-   ```bash
-   cd erp-system
-   ```
-
-2. **شغّل المشروع بالكامل:**
-   ```bash
-   docker-compose up --build
-   ```
-
-3. **انتظر حتى تظهر الرسائل التالية في الـ logs:**
-   ```
-   Admin user created successfully!
-   Seeding complete!
-   ```
-
-4. **افتح المتصفح على:**
-   - **الواجهة الأمامية:** [http://localhost:3000](http://localhost:3000)
-   - **Django Admin:** [http://localhost:8000/admin/](http://localhost:8000/admin/)
-   - **API Documentation:** [http://localhost:8000/api/](http://localhost:8000/api/)
-
-5. **بيانات الدخول الافتراضية:**
-   - **اسم المستخدم:** `admin`
-   - **كلمة المرور:** `admin123`
-
----
-
-### الخيار 2: التشغيل المحلي (بدون Docker)
-
-#### المتطلبات المسبقة
-- Python 3.10+
-- Node.js 18+
-- pip
-- npm
-
-#### الخطوات
-
-##### 1. إعداد Backend
+### الطريقة السريعة (سكريبت تلقائي)
 
 ```bash
-# انتقل إلى مجلد Backend
-cd backend
+git clone https://github.com/Ghassan2003/riadah-erp-v0.git
+cd riadah-erp-v0
+bash setup.sh
+```
 
-# إنشاء بيئة افتراضية (اختياري ولكن موصى به)
+### الطريقة اليدوية
+
+#### الخطوة 1: Backend
+
+افتح **طرفية (Terminal)** وانتقل لمجلد المشروع:
+
+```bash
+cd riadah-erp-v0/backend
+
+# إنشاء بيئة افتراضية
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# أو
-venv\Scripts\activate     # Windows
+
+# تفعيل البيئة الافتراضية
+source venv/bin/activate        # Linux / Mac
+venv\Scripts\activate           # Windows
 
 # تثبيت المتطلبات
 pip install -r requirements.txt
 
-# إنشاء قاعدة البيانات (SQLite)
+# إنشاء قاعدة البيانات
 python manage.py migrate
 
-# إنشاء مستخدم المدير الافتراضي
+# إنشاء مستخدم المدير
 python manage.py create_admin
 
-# إنشاء بيانات تجريبية للمنتجات (10 منتجات)
+# (اختياري) بيانات تجريبية
 python manage.py seed_products
+python manage.py seed_sales
+python manage.py seed_accounts
+python manage.py seed_hr
 
 # تشغيل الخادم
 python manage.py runserver 0.0.0.0:8000
 ```
 
-##### 2. إعداد Frontend (في نافذة طرفية جديدة)
+#### الخطوة 2: Frontend
+
+افتح **طرفية جديدة**:
 
 ```bash
-# انتقل إلى مجلد Frontend
-cd frontend
+cd riadah-erp-v0/frontend
 
 # تثبيت المتطلبات
 npm install
@@ -105,175 +116,78 @@ npm install
 npm run dev
 ```
 
-##### 3. افتح المتصفح
-- **الواجهة الأمامية:** [http://localhost:5173](http://localhost:5173)
-- **Django Admin:** [http://localhost:8000/admin/](http://localhost:8000/admin/)
+#### الخطوة 3: افتح المتصفح
+
+| الخدمة | الرابط |
+|--------|--------|
+| **الواجهة الأمامية** | http://localhost:5173 |
+| **Backend API** | http://localhost:8000/api/ |
+| **Django Admin** | http://localhost:8000/admin/ |
+
+### بيانات الدخول
+
+| البند | القيمة |
+|-------|--------|
+| اسم المستخدم | `admin` |
+| كلمة المرور | `admin123` |
+
+---
+
+## التشغيل عبر Docker
+
+```bash
+cd riadah-erp-v0
+docker-compose up --build
+```
+
+- **الواجهة:** http://localhost:3000
+- **API:** http://localhost:8000/api/
 
 ---
 
 ## هيكل المشروع
 
 ```
-erp-system/
+riadah-erp-v0/
 ├── backend/
 │   ├── manage.py
 │   ├── requirements.txt
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── core/                      # Django project settings
-│   │   ├── __init__.py
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   ├── wsgi.py
-│   │   └── asgi.py
-│   ├── users/                     # Users app (Phase 1)
-│   │   ├── __init__.py
-│   │   ├── admin.py
-│   │   ├── apps.py
-│   │   ├── models.py              # Custom User model
-│   │   ├── serializers.py
-│   │   ├── views.py
-│   │   ├── urls.py
-│   │   ├── permissions.py
-│   │   └── management/commands/
-│   │       ├── create_admin.py
-│   │       └── ...
-│   └── inventory/                 # Inventory app (Phase 2 - NEW)
-│       ├── __init__.py
-│       ├── admin.py               # Django admin config
-│       ├── apps.py
-│       ├── models.py              # Product model with soft delete
-│       ├── managers.py            # Custom query managers
-│       ├── serializers.py         # Product serializers
-│       ├── views.py               # CRUD + stats views
-│       ├── urls.py                # Inventory API URLs
-│       └── management/commands/
-│           └── seed_products.py   # Sample data seeder
+│   ├── core/               # إعدادات Django (settings, urls, wsgi, asgi)
+│   ├── users/              # المصادقة والصلاحيات
+│   ├── inventory/          # المنتجات والمخزون
+│   ├── sales/              # المبيعات
+│   ├── purchases/          # المشتريات
+│   ├── accounting/         # المحاسبة
+│   ├── hr/                 # الموارد البشرية
+│   ├── payroll/            # الرواتب
+│   ├── warehouse/          # المستودعات
+│   ├── projects/           # المشاريع
+│   ├── contracts/          # العقود
+│   ├── invoicing/          # الفواتير
+│   ├── payments/           # المدفوعات
+│   ├── pos/                # نقطة البيع
+│   ├── assets/             # الأصول
+│   ├── notifications/      # الإشعارات
+│   ├── auditlog/           # سجل التدقيق
+│   ├── maintenance/        # الصيانة
+│   ├── documents/          # المستندات
+│   ├── videos/             # الفيديوهات
+│   └── attachments/        # المرفقات
 ├── frontend/
-│   ├── package.json
-│   ├── vite.config.js
+│   ├── src/
+│   │   ├── pages/          # 35+ صفحة
+│   │   ├── components/     # 11 مكون مشترك
+│   │   ├── api/index.js    # طبقة API
+│   │   ├── context/        # Auth + Theme
+│   │   └── i18n/           # الترجمة عربي/إنجليزي
 │   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   ├── nginx.conf
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── index.html
-│   ├── public/
-│   └── src/
-│       ├── main.jsx
-│       ├── App.jsx
-│       ├── index.css
-│       ├── api/
-│       │   └── index.js           # API client + inventory endpoints
-│       ├── context/
-│       │   └── AuthContext.jsx
-│       ├── components/
-│       │   ├── MainLayout.jsx     # Updated with inventory nav
-│       │   ├── ProtectedRoute.jsx
-│       │   └── LoadingSpinner.jsx
-│       └── pages/
-│           ├── LoginPage.jsx
-│           ├── DashboardPage.jsx  # Updated with real stats
-│           ├── ProductsPage.jsx   # NEW - full product management
-│           ├── ProfilePage.jsx
-│           └── UsersPage.jsx
+│   └── vite.config.js
 ├── docker-compose.yml
+├── setup.sh                # سكريبت الإعداد التلقائي
+├── .env.example            # متغيرات البيئة
 └── README.md
 ```
 
----
+## الترخيص
 
-## API Endpoints - المرحلة 2
-
-### المصادقة (Authentication) - من المرحلة 1
-
-| الطريقة | المسار | الوصف | الصلاحية |
-|---------|--------|-------|----------|
-| POST | `/api/auth/login/` | تسجيل الدخول (JWT) | عام |
-| POST | `/api/auth/refresh/` | تجديد Access Token | مع Refresh Token |
-| GET | `/api/auth/profile/` | عرض بيانات المستخدم | مسجل الدخول |
-| PATCH | `/api/auth/profile/` | تحديث الملف الشخصي | صاحب الحساب |
-| POST | `/api/auth/change-password/` | تغيير كلمة المرور | مسجل الدخول |
-| POST | `/api/auth/register/` | إنشاء مستخدم جديد | Admin فقط |
-| GET | `/api/auth/users/` | قائمة المستخدمين | Admin فقط |
-
-### إدارة المخزون (Inventory) - جديد في المرحلة 2
-
-| الطريقة | المسار | الوصف | الصلاحية |
-|---------|--------|-------|----------|
-| GET | `/api/inventory/stats/` | إحصائيات المخزون | مسجل الدخول |
-| GET | `/api/inventory/products/` | قائمة المنتجات (مع بحث) | مسجل الدخول |
-| POST | `/api/inventory/products/` | إضافة منتج جديد | Admin + Warehouse |
-| GET | `/api/inventory/products/{id}/` | تفاصيل منتج | مسجل الدخول |
-| PATCH | `/api/inventory/products/{id}/` | تحديث منتج | Admin + Warehouse |
-| DELETE | `/api/inventory/products/{id}/soft-delete/` | حذف ناعم (تعطيل) | Admin + Warehouse |
-| POST | `/api/inventory/products/{id}/restore/` | استعادة منتج محذوف | Admin + Warehouse |
-
-#### معاملات البحث (Query Parameters)
-- `search`: بحث بالاسم أو SKU
-- `show_deleted=true`: عرض المنتجات المحذوفة أيضاً
-- `ordering`: ترتيب (`name`, `sku`, `quantity`, `unit_price`, `-created_at`)
-- `page`: رقم الصفحة
-
----
-
-## نظام الأدوار والصلاحيات (مُحدّث)
-
-| الدور | الكود | صلاحيات المرحلة 2 |
-|-------|-------|-------------------|
-| مدير النظام | `admin` | كل شيء + إدارة المستخدمين + إدارة المنتجات |
-| موظف المخازن | `warehouse` | عرض المنتجات + إضافة/تعديل/حذف المنتجات |
-| موظف المبيعات | `sales` | عرض المنتجات فقط (قراءة) |
-| المحاسب | `accountant` | عرض المنتجات فقط (قراءة) |
-
----
-
-## اختبار المرحلة 2 خطوة بخطوة
-
-### 1. تسجيل الدخول
-- افتح [http://localhost:3000](http://localhost:3000)
-- أدخل: `admin` / `admin123`
-- ✅ يجب أن تنتقل إلى لوحة التحكم
-
-### 2. لوحة التحكم (Dashboard)
-- ✅ يجب أن ترى إحصائيات المخزون الحقيقية (10 منتجات)
-- ✅ يجب أن ترى تنبيه عن المنتجات منخفضة المخزون (3 منتجات)
-- ✅ اضغط على بطاقة "إجمالي المنتجات" لتنتقل لصفحة المنتجات
-
-### 3. إدارة المنتجات (Crud كامل)
-- اضغط "إدارة المنتجات" في القائمة الجانبية
-- ✅ يجب أن ترى جدول بـ 10 منتجات مع أعمدة (الاسم، SKU، الكمية، السعر، القيمة، الحالة)
-- ✅ المنتجات منخفضة المخزون يجب أن تظهر بلون برتقالي
-- ✅ اضغط على زر "إضافة منتج جديد" وأضف منتج جديد
-- ✅ اضغط على زر التعديل (قلم) لتعديل منتج موجود
-- ✅ اضغط على زر الحذف (سلة) وأكد الحذف
-- ✅ فعّل "عرض المحذوفة" لرؤية المنتجات المحذوفة
-- ✅ اضغط زر الاستعادة لمنتج محذوف
-- ✅ استخدم خانة البحث للبحث بالاسم أو SKU
-- ✅ يجب أن تظهر إشعارات Toast لكل عملية
-
-### 4. اختبار الصلاحيات
-- أنشئ مستخدم `warehouse` من Django Admin أو عبر API
-- سجّل دخول بمستخدم `warehouse`
-- ✅ يجب أن يرى زر "إضافة منتج جديد"
-- ✅ يجب أن يرى أزرار التعديل والحذف
-- أنشئ مستخدم `sales`
-- سجّل دخول بمستخدم `sales`
-- ✅ يجب أن يرى المنتجات لكن بدون أزرار الإضافة/التعديل/الحذف
-
-### 5. Django Admin
-- افتح [http://localhost:8000/admin/](http://localhost:8000/admin/)
-- ✅ يمكنك رؤية وإدارة المنتجات (بما فيها المحذوفة)
-- ✅ يمكنك استعادة المنتجات المحذوفة من Admin
-
----
-
-## المراحل القادمة
-
-| المرحلة | الوحدة | الحالة |
-|---------|--------|--------|
-| المرحلة 1 | الهيكل الأساسي والمصادقة | ✅ مكتملة |
-| المرحلة 2 | وحدة إدارة المخزون (Inventory) | ✅ مكتملة |
-| المرحلة 3 | وحدة المبيعات وإدارة العملاء | ⏳ قادمة |
-| المرحلة 4 | وحدة المحاسبة البسيطة | ⏳ قادمة |
-| المرحلة 5 | وحدة الموارد البشرية والتقارير | ⏳ قادمة |
+مشروع خاص - RIADAH ERP
