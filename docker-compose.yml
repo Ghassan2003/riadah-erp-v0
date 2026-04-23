@@ -36,6 +36,30 @@ services:
         python manage.py seed_sales &&
         python manage.py seed_accounts &&
         python manage.py seed_hr &&
+        python manage.py seed_purchases &&
+        python manage.py seed_documents &&
+        python manage.py seed_projects &&
+        python manage.py seed_notifications &&
+        python manage.py seed_auditlog &&
+        python manage.py seed_attachments &&
+        python manage.py seed_videos &&
+        python manage.py seed_pos &&
+        python manage.py seed_invoicing &&
+        python manage.py seed_payroll &&
+        python manage.py seed_warehouse &&
+        python manage.py seed_assets &&
+        python manage.py seed_contracts &&
+        python manage.py seed_payments &&
+        python manage.py seed_budget &&
+        python manage.py seed_tenders &&
+        python manage.py seed_manufacturing &&
+        python manage.py seed_shipping &&
+        python manage.py seed_insurance &&
+        python manage.py seed_importexport &&
+        python manage.py seed_equipmaint &&
+        python manage.py seed_crm &&
+        python manage.py seed_internalaudit &&
+        python manage.py seed_maintenance &&
         gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
       "
     volumes:

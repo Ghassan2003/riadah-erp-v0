@@ -235,7 +235,7 @@ class DashboardLiveStatsView(views.APIView):
 
         # Recent notifications count (unread)
         from notifications.models import Notification
-        unread_notifications = Notification.objects.filter(user=request.user, is_read=False).count()
+        unread_notifications = Notification.objects.filter(recipient=request.user, is_read=False).count()
 
         # Active users count
         from django.contrib.auth import get_user_model
@@ -300,10 +300,9 @@ class PDFReportView(views.APIView):
                 qs = qs.filter(name__icontains=search)
             data = [{
                 'sku': p.sku, 'name': p.name,
-                'category_name': p.category.name if p.category else '',
-                'selling_price': p.selling_price,
-                'stock_quantity': p.stock_quantity,
-                'total_value': float(p.selling_price * p.stock_quantity),
+                'unit_price': float(p.unit_price),
+                'quantity': int(p.quantity),
+                'total_value': float(p.unit_price * p.quantity),
             } for p in qs]
             pdf = generate_inventory_report(data, filters)
             filename = 'inventory_report.pdf'
@@ -521,13 +520,13 @@ class SalesAnalyticsView(views.APIView):
 
         top_products_data = [{'name': p['product_name'] or '', 'volume': int(p['volume']), 'revenue': float(p['revenue'])} for p in top_products]
 
-        # Customer categories distribution
+        # Customer order distribution (top customers by order count)
         customer_dist = SalesOrder.objects.filter(status='confirmed').values(
-            'customer__customer_type'
+            'customer__name'
         ).annotate(count=Count('id')).order_by('-count')[:5]
 
         customer_categories = [
-            {'name': str(c['customer__customer_type'] or 'عادي'), 'value': c['count']}
+            {'name': c['customer__name'] or 'غير محدد', 'value': c['count']}
             for c in customer_dist
         ]
 
@@ -549,7 +548,7 @@ class InventoryAnalyticsView(views.APIView):
         low_stock = Product.objects.filter(
             quantity__lte=F('reorder_level'),
             quantity__gt=0,
-            is_deleted=False,
+            is_active=True,
         ).order_by('quantity')[:20]
 
         low_stock_data = [{
@@ -557,36 +556,30 @@ class InventoryAnalyticsView(views.APIView):
             'sku': p.sku,
             'current': int(p.quantity),
             'reorder': int(p.reorder_level),
-            'category': p.category.name if p.category else '',
+            'unit_price': float(p.unit_price),
         } for p in low_stock]
 
         # Out of stock
-        out_of_stock = Product.objects.filter(quantity=0, is_deleted=False).count()
-
-        # Stock distribution by category
-        from django.db.models import Sum
-        cat_dist = Product.objects.filter(is_deleted=False).values(
-            'category__name'
-        ).annotate(
-            total_qty=Coalesce(Sum('quantity'), Value(0)),
-        ).order_by('-total_qty')[:10]
-
-        stock_distribution = [
-            {'name': str(c['category__name'] or 'غير مصنف'), 'value': int(c['total_qty'])}
-            for c in cat_dist
-        ]
+        out_of_stock = Product.objects.filter(quantity=0, is_active=True).count()
 
         # Total inventory value
-        total_value = Product.objects.filter(is_deleted=False).aggregate(
-            t=Coalesce(Sum(F('selling_price') * F('quantity')), Value(0), output_field=DecimalField(max_digits=16, decimal_places=2))
+        total_value = Product.objects.filter(is_active=True).aggregate(
+            t=Coalesce(Sum(F('unit_price') * F('quantity')), Value(0), output_field=DecimalField(max_digits=16, decimal_places=2))
         )['t']
+
+        # Top products by value
+        top_products = Product.objects.filter(is_active=True).order_by('-quantity')[:10]
+        stock_distribution = [{
+            'name': p.name,
+            'value': int(p.quantity),
+        } for p in top_products]
 
         return Response({
             'low_stock_items': low_stock_data,
             'out_of_stock_count': out_of_stock,
             'stock_distribution': stock_distribution,
             'total_inventory_value': float(total_value),
-            'total_products': Product.objects.filter(is_deleted=False).count(),
+            'total_products': Product.objects.filter(is_active=True).count(),
         })
 
 

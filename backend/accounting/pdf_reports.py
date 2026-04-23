@@ -1,6 +1,7 @@
 """
 توليد تقارير PDF للمحاسبة - نظام ERP.
 يستخدم مكتبة ReportLab لتوليد تقارير قائمة الدخل والميزانية العمومية بصيغة PDF.
+يدعم النص العربي مع اتجاه RTL باستخدام خط Noto Sans Arabic.
 """
 
 from reportlab.lib import colors
@@ -13,13 +14,46 @@ from reportlab.pdfbase.ttfonts import TTFont
 import os
 from io import BytesIO
 
-# Try to register Arabic font
-FONT_PATH = '/usr/share/fonts/truetype/chinese/SimHei.ttf'
+# ─── Register Arabic Font ──────────────────────────────────────────────────────
+# Font search order: bundled font → common Linux paths → fallback
+_ARABIC_FONT_CANDIDATES = [
+    # Bundled font (ships with the project)
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'fonts', 'NotoSansArabic.ttf'),
+    # Common Linux locations
+    '/usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf',
+    '/usr/share/fonts/truetype/noto/NotoSansArabic.ttf',
+    '/usr/share/fonts/opentype/noto/NotoSansArabic-Regular.otf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',       # partial Arabic
+    '/usr/share/fonts/truetype/freefont/FreeSerif.ttf',       # partial Arabic
+]
+
+ARABIC_FONT = 'Helvetica'  # default fallback
+
+for _font_path in _ARABIC_FONT_CANDIDATES:
+    _font_path = os.path.normpath(_font_path)
+    if os.path.isfile(_font_path):
+        try:
+            pdfmetrics.registerFont(TTFont('ArabicFont', _font_path))
+            ARABIC_FONT = 'ArabicFont'
+            break
+        except Exception:
+            continue
+
+# ─── Arabic text reshaping (RTL support) ───────────────────────────────────────
 try:
-    pdfmetrics.registerFont(TTFont('ArabicFont', '/usr/share/fonts/truetype/chinese/SimHei.ttf'))
-    ARABIC_FONT = 'ArabicFont'
-except:
-    ARABIC_FONT = 'Helvetica'
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+
+    def _arabic(text):
+        """Reshape and reorder Arabic text for correct PDF rendering."""
+        if not text:
+            return text
+        reshaped = arabic_reshaper.reshape(text)
+        return get_display(reshaped)
+except ImportError:
+    # Fallback: return text as-is (won't render RTL correctly)
+    def _arabic(text):
+        return text
 
 
 def generate_income_statement_pdf(income_data, period_from=None, period_to=None):
@@ -43,19 +77,21 @@ def generate_income_statement_pdf(income_data, period_from=None, period_to=None)
     )
 
     elements = []
-    elements.append(Paragraph('قائمة الدخل', title_style))
+    elements.append(Paragraph(_arabic('قائمة الدخل'), title_style))
     elements.append(Spacer(1, 10))
 
     if period_from and period_to:
-        elements.append(Paragraph(f'الفترة: {period_from} إلى {period_to}', normal_style))
+        elements.append(Paragraph(
+            _arabic(f'الفترة: {period_from} إلى {period_to}'), normal_style
+        ))
     elements.append(Spacer(1, 20))
 
     # Revenue section
-    elements.append(Paragraph('الإيرادات', heading_style))
-    revenue_data = [['البند', 'المبلغ']]
+    elements.append(Paragraph(_arabic('الإيرادات'), heading_style))
+    revenue_data = [[_arabic('البند'), _arabic('المبلغ')]]
     for item in income_data.get('revenue_items', []):
-        revenue_data.append([item['name'], str(item['amount'])])
-    revenue_data.append(['إجمالي الإيرادات', str(income_data.get('total_revenue', 0))])
+        revenue_data.append([_arabic(item['name']), str(item['amount'])])
+    revenue_data.append([_arabic('إجمالي الإيرادات'), str(income_data.get('total_revenue', 0))])
 
     revenue_table = Table(revenue_data, colWidths=[300, 150])
     revenue_table.setStyle(TableStyle([
@@ -72,11 +108,11 @@ def generate_income_statement_pdf(income_data, period_from=None, period_to=None)
     elements.append(Spacer(1, 20))
 
     # Expense section
-    elements.append(Paragraph('المصروفات', heading_style))
-    expense_data = [['البند', 'المبلغ']]
+    elements.append(Paragraph(_arabic('المصروفات'), heading_style))
+    expense_data = [[_arabic('البند'), _arabic('المبلغ')]]
     for item in income_data.get('expense_items', []):
-        expense_data.append([item['name'], str(item['amount'])])
-    expense_data.append(['إجمالي المصروفات', str(income_data.get('total_expenses', 0))])
+        expense_data.append([_arabic(item['name']), str(item['amount'])])
+    expense_data.append([_arabic('إجمالي المصروفات'), str(income_data.get('total_expenses', 0))])
 
     expense_table = Table(expense_data, colWidths=[300, 150])
     expense_table.setStyle(TableStyle([
@@ -95,7 +131,7 @@ def generate_income_statement_pdf(income_data, period_from=None, period_to=None)
     net = income_data.get('net_income', 0)
     elements.append(HRFlowable(width="100%", thickness=2, color=colors.darkblue))
     elements.append(Spacer(1, 10))
-    net_data = [['صافي الربح/الخسارة', str(net)]]
+    net_data = [[_arabic('صافي الربح/الخسارة'), str(net)]]
     net_table = Table(net_data, colWidths=[300, 150])
     net_table.setStyle(TableStyle([
         ('FONTNAME', (0, 0), (-1, -1), ARABIC_FONT),
@@ -131,15 +167,15 @@ def generate_balance_sheet_pdf(balance_data):
     )
 
     elements = []
-    elements.append(Paragraph('الميزانية العمومية', title_style))
+    elements.append(Paragraph(_arabic('الميزانية العمومية'), title_style))
     elements.append(Spacer(1, 20))
 
     # Assets
-    elements.append(Paragraph('الأصول', heading_style))
-    assets_data = [['البند', 'المبلغ']]
+    elements.append(Paragraph(_arabic('الأصول'), heading_style))
+    assets_data = [[_arabic('البند'), _arabic('المبلغ')]]
     for item in balance_data.get('assets', []):
-        assets_data.append([item['name'], str(item['amount'])])
-    assets_data.append(['إجمالي الأصول', str(balance_data.get('total_assets', 0))])
+        assets_data.append([_arabic(item['name']), str(item['amount'])])
+    assets_data.append([_arabic('إجمالي الأصول'), str(balance_data.get('total_assets', 0))])
 
     assets_table = Table(assets_data, colWidths=[300, 150])
     assets_table.setStyle(TableStyle([
@@ -155,13 +191,16 @@ def generate_balance_sheet_pdf(balance_data):
     elements.append(Spacer(1, 20))
 
     # Liabilities & Equity
-    elements.append(Paragraph('الخصوم وحقوق الملكية', heading_style))
-    le_data = [['البند', 'المبلغ']]
+    elements.append(Paragraph(_arabic('الخصوم وحقوق الملكية'), heading_style))
+    le_data = [[_arabic('البند'), _arabic('المبلغ')]]
     for item in balance_data.get('liabilities', []):
-        le_data.append([item['name'], str(item['amount'])])
+        le_data.append([_arabic(item['name']), str(item['amount'])])
     for item in balance_data.get('equity', []):
-        le_data.append([item['name'], str(item['amount'])])
-    le_data.append(['إجمالي الخصوم وحقوق الملكية', str(balance_data.get('total_liabilities_equity', 0))])
+        le_data.append([_arabic(item['name']), str(item['amount'])])
+    le_data.append([
+        _arabic('إجمالي الخصوم وحقوق الملكية'),
+        str(balance_data.get('total_liabilities_equity', 0))
+    ])
 
     le_table = Table(le_data, colWidths=[300, 150])
     le_table.setStyle(TableStyle([

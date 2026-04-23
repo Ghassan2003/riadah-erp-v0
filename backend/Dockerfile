@@ -6,10 +6,11 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies + Arabic fonts for PDF generation
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    fonts-noto-core \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
