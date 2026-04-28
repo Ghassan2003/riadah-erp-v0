@@ -215,6 +215,7 @@ class ShipmentChangeStatusView(views.APIView):
             )
 
         old_status = shipment.status
+        old_status_display = shipment.get_status_display()
         shipment.status = new_status
 
         # Auto-set actual delivery date
@@ -224,10 +225,11 @@ class ShipmentChangeStatusView(views.APIView):
         shipment.save()
 
         # Create event for status change
+        new_status_display = dict(Shipment.STATUS_CHOICES).get(new_status, new_status)
         ShipmentEvent.objects.create(
             shipment=shipment,
             event_type=new_status,
-            description=f'تم تغيير حالة الشحنة من "{shipment.get_status_display()}" إلى "{dict(Shipment.STATUS_CHOICES).get(new_status, new_status)}". {notes}'.strip(),
+            description=f'تم تغيير حالة الشحنة من "{old_status_display}" إلى "{new_status_display}". {notes}'.strip(),
         )
 
         return Response({

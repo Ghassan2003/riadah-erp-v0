@@ -12,6 +12,7 @@ from django.db.models import Sum, Count, F, DecimalField, Q, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.http import HttpResponse
+from decimal import Decimal
 
 from .models import (
     PayrollPeriod,

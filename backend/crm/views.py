@@ -322,10 +322,12 @@ class LeadActivityListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = LeadActivity.objects.select_related('lead', 'completed_by')
-        # تصفية حسب فرصة البيع
-        lead = self.request.query_params.get('lead')
+        # تصفية حسب فرصة البيع (من معرف المسار أولاً)
+        lead = self.kwargs.get('pk')
         if lead:
             queryset = queryset.filter(lead_id=lead)
+        elif self.request.query_params.get('lead'):
+            queryset = queryset.filter(lead_id=self.request.query_params.get('lead'))
         # تصفية حسب نوع النشاط
         activity_type = self.request.query_params.get('activity_type')
         if activity_type:
@@ -571,10 +573,12 @@ class CampaignActivityListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = CampaignActivity.objects.select_related('campaign', 'contact')
-        # تصفية حسب الحملة
-        campaign = self.request.query_params.get('campaign')
+        # تصفية حسب الحملة (من معرف المسار أولاً)
+        campaign = self.kwargs.get('pk')
         if campaign:
             queryset = queryset.filter(campaign_id=campaign)
+        elif self.request.query_params.get('campaign'):
+            queryset = queryset.filter(campaign_id=self.request.query_params.get('campaign'))
         # تصفية حسب نوع النشاط
         activity_type = self.request.query_params.get('activity_type')
         if activity_type:
