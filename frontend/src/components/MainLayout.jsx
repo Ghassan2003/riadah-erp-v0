@@ -24,6 +24,7 @@ import toast from 'react-hot-toast';
 import { notificationsAPI } from '../api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import ChatWidget from './ChatWidget';
+import ScrollToTop from './ScrollToTop';
 
 export default function MainLayout() {
   const { user, logout, hasPermission, getDefaultRoute, getDashboardName } = useAuth();
@@ -147,13 +148,13 @@ export default function MainLayout() {
       ],
     },
     {
-      title: t('budgetAndTenders'),
+      title: t('tenders'),
       items: [
         { name: t('tenders'), path: '/tenders', icon: Gavel, roles: ['admin', 'project_manager'] },
       ],
     },
     {
-      title: t('hrAndInsurance'),
+      title: locale === 'ar' ? 'العمليات والصيانة' : 'Operations & Maintenance',
       items: [
         { name: t('equipMaint'), path: '/equip-maint', icon: Wrench, roles: ['admin'] },
       ],
@@ -510,6 +511,9 @@ export default function MainLayout() {
 
       {/* Floating Chat Widget */}
       <ChatWidget />
+
+      {/* Scroll To Top Button + Reading Progress */}
+      <ScrollToTop />
     </div>
   );
 }

@@ -13,7 +13,10 @@ import {
   ClipboardList, CreditCard, PieChart, Bell, Settings, Globe,
   CheckCircle2, ArrowLeft, ArrowRight, Star, Zap, Lock,
   Headphones, Clock, Layers, Target, Award, ChevronDown,
-  Menu, X, Sun, Moon, HeartHandshake, ShieldCheck, Store
+  Menu, X, Sun, Moon, HeartHandshake, ShieldCheck, Store,
+  ArrowUp, Bot, MessageSquareText, BrainCircuit, LineChart,
+  Handshake, Briefcase, Receipt, Landmark, Wrench, GraduationCap,
+  Gavel, Globe2, Rocket, FileBarChart, Cpu, Sparkles
 } from 'lucide-react';
 
 /* ───────────── Icon Badge Component ───────────── */
@@ -63,6 +66,29 @@ const BenefitItem = ({ text }) => (
 /* ══════════════════════════════════════════════════════════════════════
    MAIN LANDING PAGE
    ══════════════════════════════════════════════════════════════════════ */
+/* ───────────── Intersection Observer Hook ───────────── */
+function useInView(options = {}) {
+  const [ref, setRef] = useState(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } }, { threshold: 0.15, ...options });
+    obs.observe(ref);
+    return () => obs.disconnect();
+  }, [ref]);
+  return [setRef, inView];
+}
+
+/* ───────────── Animated Section Wrapper ───────────── */
+function AnimatedSection({ children, className = '', delay = 0 }) {
+  const [ref, inView] = useInView();
+  return (
+    <div ref={ref} className={`transition-all duration-700 ease-out ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const { t, locale, setLocale } = useI18n();
   const { isDark, toggleTheme } = useTheme();
@@ -70,10 +96,17 @@ export default function LandingPage() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeFaq, setActiveFaq] = useState(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20);
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0);
+      setShowScrollTop(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
@@ -108,6 +141,17 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+
+      {/* ════════ SCROLL PROGRESS BAR ════════ */}
+      <div className="fixed top-0 left-0 right-0 z-[60] h-1">
+        <div className="h-full bg-gradient-to-l from-blue-500 via-purple-500 to-pink-500 transition-all duration-100 ease-out" style={{ width: `${scrollProgress}%` }} />
+      </div>
+
+      {/* ════════ SCROLL TO TOP ════════ */}
+      <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="العودة للأعلى"
+        className={`fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-1 active:scale-95 flex items-center justify-center transition-all duration-300 ${showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+        <ArrowUp className="w-5 h-5" />
+      </button>
 
       {/* ════════ NAVBAR ════════ */}
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg shadow-black/5' : 'bg-transparent'}`}>
@@ -260,6 +304,7 @@ export default function LandingPage() {
       </section>
 
       {/* ════════ STATS SECTION ════════ */}
+      <AnimatedSection>
       <section className="relative py-16 bg-gradient-to-l from-blue-600 to-purple-700 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-white blur-3xl" />
@@ -274,11 +319,13 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ════════ SERVICES SECTION ════════ */}
       <section id="services" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section header */}
+          <AnimatedSection>
           <div className="text-center max-w-2xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6">
               <Package className="w-4 h-4 text-purple-500" />
@@ -287,9 +334,10 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-black mb-4">{t('landing.servicesTitle')}</h2>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{t('landing.servicesDesc')}</p>
           </div>
+          </AnimatedSection>
 
           {/* Services grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 stagger-children">
             {services.map((s, i) => (
               <FeatureCard key={i} {...s} />
             ))}
@@ -298,6 +346,7 @@ export default function LandingPage() {
       </section>
 
       {/* ════════ WHY CHOOSE US ════════ */}
+      <AnimatedSection>
       <section id="features" className="py-20 md:py-28 bg-gray-100/50 dark:bg-gray-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -363,8 +412,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ════════ HOW IT WORKS ════════ */}
+      <AnimatedSection>
       <section className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -398,8 +449,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ════════ CTA SECTION ════════ */}
+      <AnimatedSection>
       <section className="py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 rounded-3xl p-10 md:p-16 text-center overflow-hidden">
@@ -423,8 +476,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ════════ FAQ SECTION ════════ */}
+      <AnimatedSection>
       <section id="faq" className="py-20 md:py-28 bg-gray-100/50 dark:bg-gray-900/50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -456,6 +511,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
       {/* ════════ FOOTER ════════ */}
       <footer className="bg-gray-900 dark:bg-gray-950 text-white py-16">

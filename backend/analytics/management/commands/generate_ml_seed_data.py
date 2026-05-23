@@ -17,8 +17,6 @@ from django.db import transaction
 from django.utils import timezone
 
 from sales.models import Customer, SalesOrder, SalesOrderItem
-# TODO: inventory module removed - seed data needs redesign
-# from inventory.models import Product
 from invoicing.models import Invoice, InvoiceItem, Payment
 from accounting.models import Account, JournalEntry, Transaction
 from purchases.models import Supplier, PurchaseOrder, PurchaseOrderItem
@@ -336,9 +334,9 @@ class Command(BaseCommand):
             employees = self._gen_employees(departments)
             self._log('Employees', len(employees))
 
-            # 3 – Products
-            products = self._gen_products()
-            self._log('Products', len(products))
+            # 3 – Product catalog (static lookup, no DB table)
+            product_catalog = {p[1]: {'name': p[0], 'sku': p[1], 'price': p[2]} for p in PRODUCTS}
+            self._log('Product Catalog', len(product_catalog))
 
             # 4 – Customers
             customers, customer_segments = self._gen_customers()
@@ -353,7 +351,7 @@ class Command(BaseCommand):
             self._log('Chart of Accounts', len(accounts))
 
             # 7 – Sales orders + items
-            orders, order_items = self._gen_sales_orders(customers, customer_segments, products)
+            orders, order_items = self._gen_sales_orders(customers, customer_segments, product_catalog)
             self._log('Sales Orders', len(orders))
             self._log('Sales Order Items', len(order_items))
 
@@ -369,7 +367,7 @@ class Command(BaseCommand):
             self._log('Transactions', txn_count)
 
             # 10 – Purchase orders
-            po_count, poi_count = self._gen_purchase_orders(suppliers, products)
+            po_count, poi_count = self._gen_purchase_orders(suppliers, product_catalog)
             self._log('Purchase Orders', po_count)
             self._log('Purchase Order Items', poi_count)
 
@@ -407,7 +405,6 @@ class Command(BaseCommand):
             PayrollRecord, PayrollPeriod,
             Attendance,
             Employee, Department,
-            Product,
             Customer,
             Supplier,
             Account,
@@ -491,20 +488,6 @@ class Command(BaseCommand):
                 emp_idx += 1
         return Employee.objects.bulk_create(objs)
 
-    # ── 3. Products ───────────────────────────────────────────────────
-    def _gen_products(self):
-        objs = []
-        for name, sku, price, qty, reorder in PRODUCTS:
-            objs.append(Product(
-                name=name, sku=sku,
-                description=f'منتج: {name}',
-                unit_price=price,
-                quantity=qty,
-                reorder_level=reorder,
-                is_active=True,
-            ))
-        return Product.objects.bulk_create(objs)
-
     # ── 4. Customers ──────────────────────────────────────────────────
     def _gen_customers(self):
         """Create 50 customers with segment assignments.
@@ -584,9 +567,9 @@ class Command(BaseCommand):
         return all_accounts
 
     # ── 7. Sales Orders + Items ──────────────────────────────────────
-    def _gen_sales_orders(self, customers, segments, products):
+    def _gen_sales_orders(self, customers, segments, product_catalog):
         """Generate 500+ sales orders with seasonal patterns."""
-        product_by_sku = {p.sku: p for p in products}
+        product_by_sku = product_catalog
         all_orders = []
         all_items = []
         so_seq = 1
@@ -683,12 +666,12 @@ class Command(BaseCommand):
                         qty = 1
                     else:
                         qty = random.randint(1, 20)
-                    unit_price = prod.unit_price * Q(random.uniform(0.95, 1.05))
+                    unit_price = D(prod['price']) * Q(random.uniform(0.95, 1.05))
                     subtotal = Q(qty * unit_price)
                     total += subtotal
 
                     all_items.append(SalesOrderItem(
-                        order=order, product=prod,
+                        order=order, product_name=prod['name'],
                         quantity=qty,
                         unit_price=unit_price,
                         subtotal=subtotal,
@@ -720,11 +703,8 @@ class Command(BaseCommand):
             # Calculate subtotal from order items
             order_subtotal = sum(item.subtotal for item in order.items.all()) if hasattr(order, 'items') else D('0')
 
-            # For simplicity, recalc from items that exist
-            subtotal = D('0')
-            for item in all_items if False else []:
-                pass
-            subtotal = order.total_amount  # Use order total as base
+            # Use order total as base
+            subtotal = order.total_amount
 
             inv_number = f'INV-{issue_date.strftime("%Y%m%d")}-{inv_seq:04d}'
             inv_seq += 1
@@ -756,7 +736,7 @@ class Command(BaseCommand):
             for oitem in SalesOrderItem.objects.filter(order=order):
                 inv_items.append(InvoiceItem(
                     invoice=inv,
-                    product=oitem.product,
+                    product_name=oitem.product_name,
                     description=oitem.product_name or '',
                     quantity=D(oitem.quantity),
                     unit_price=oitem.unit_price,
@@ -1021,9 +1001,9 @@ class Command(BaseCommand):
         return len(all_entries), len(all_transactions)
 
     # ── 10. Purchase Orders ───────────────────────────────────────────
-    def _gen_purchase_orders(self, suppliers, products):
+    def _gen_purchase_orders(self, suppliers, product_catalog):
         """Generate 30 purchase orders."""
-        product_by_sku = {p.sku: p for p in products}
+        product_by_sku = product_catalog
         all_pos = []
         all_pois = []
         po_seq = 1
@@ -1059,17 +1039,17 @@ class Command(BaseCommand):
 
                 # 2-5 items per PO
                 num_items = random.randint(2, 5)
-                chosen = random.sample(list(product_by_sku.values()), min(num_items, len(products)))
+                chosen = random.sample(list(product_by_sku.values()), min(num_items, len(product_catalog)))
                 total = D('0')
                 for prod in chosen:
                     qty = random.randint(10, 200)
-                    unit_price = Q(prod.unit_price * D(random.uniform(0.6, 0.85)))  # Purchase price
+                    unit_price = Q(D(prod['price']) * D(random.uniform(0.6, 0.85)))  # Purchase price
                     subtotal = Q(qty * unit_price)
                     total += subtotal
                     received = qty if status == 'received' else (int(qty * 0.6) if status == 'partial' else 0)
 
                     all_pois.append(PurchaseOrderItem(
-                        order=po, product=prod,
+                        order=po, product_name=prod['name'],
                         quantity=qty,
                         unit_price=unit_price,
                         subtotal=subtotal,
