@@ -13,7 +13,7 @@ import {
   ClipboardList, CreditCard, PieChart, Bell, Settings, Globe,
   CheckCircle2, ArrowLeft, ArrowRight, Star, Zap, Lock,
   Headphones, Clock, Layers, Target, Award, ChevronDown,
-  Menu, X, Sun, Moon
+  Menu, X, Sun, Moon, HeartHandshake, ShieldCheck, Store
 } from 'lucide-react';
 
 /* ───────────── Icon Badge Component ───────────── */
