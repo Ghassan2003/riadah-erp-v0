@@ -485,6 +485,15 @@ export const pdfAPI = {
   moduleReport: (module, params) => api.get(`/reports/pdf/${module}/`, { params, responseType: 'blob' }),
 };
 
+// Chatbot API
+export const chatbotAPI = {
+  listConversations: () => api.get('/chatbot/conversations/'),
+  getConversation: (id) => api.get(`/chatbot/conversations/${id}/`),
+  createConversation: (data) => api.post('/chatbot/conversations/', data),
+  deleteConversation: (id) => api.delete(`/chatbot/conversations/${id}/`),
+  sendMessage: (data) => api.post('/chatbot/chat/', data),
+};
+
 // Financial Reports API - Enhanced
 export const financialReportsAPI = {
   incomeStatement: (params) => api.get('/accounting/reports/income-statement/', { params }),

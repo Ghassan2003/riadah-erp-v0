@@ -10,7 +10,7 @@ from django.conf import settings
 class Conversation(models.Model):
     """
     Model representing a chat conversation session.
-    Each conversation belongs to a specific user and optionally to a company.
+    Each conversation belongs to a specific user.
     """
 
     user = models.ForeignKey(
@@ -19,17 +19,6 @@ class Conversation(models.Model):
         related_name='chatbot_conversations',
         verbose_name='المستخدم',
         db_index=True,
-    )
-    # Company FK — nullable since no Company model exists yet.
-    # When a Company model is introduced, update this field accordingly.
-    company = models.ForeignKey(
-        'self',  # Placeholder; replace with actual Company model when available
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name='الشركة',
-        db_index=True,
-        editable=False,
     )
     title = models.CharField(
         max_length=255,

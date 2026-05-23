@@ -18,11 +18,12 @@ import {
   Wallet, Receipt, Store, Building2, ScrollText, Landmark, ExternalLink,
   Calculator, Gavel, ShieldCheck, Globe2, Wrench, HeartHandshake, Search, TrendingUp,
   Rocket,
-  UserPlus, GraduationCap, Network,
+  UserPlus, GraduationCap, Network, Bot, MessageSquare,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { notificationsAPI } from '../api';
 import { useWebSocket } from '../hooks/useWebSocket';
+import ChatWidget from './ChatWidget';
 
 export default function MainLayout() {
   const { user, logout, hasPermission, getDefaultRoute, getDashboardName } = useAuth();
@@ -167,6 +168,12 @@ export default function MainLayout() {
       title: t('complianceSection'),
       items: [
         { name: t('analytics'), path: '/analytics', icon: TrendingUp, roles: ['admin', 'accountant', 'sales'] },
+      ],
+    },
+    {
+      title: 'المساعد الذكي',
+      items: [
+        { name: 'المساعد الذكي', path: '/chatbot', icon: Bot, roles: ['admin', 'sales', 'accountant', 'hr', 'purchasing', 'project_manager'] },
       ],
     },
     {
@@ -500,6 +507,9 @@ export default function MainLayout() {
           })}
         </div>
       </nav>
+
+      {/* Floating Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 """
 Central RAG (Retrieval-Augmented Generation) chat service for RIADAH ERP.
 Orchestrates message processing, intent classification, and response generation.
+Updated to support the full 23-app module structure.
 """
 
 import logging
@@ -9,16 +10,19 @@ from .models import Conversation, Message
 from .intent_classifier import intent_classifier
 from .smart_query_engine import SmartQueryEngine
 from .ai_service import generate_response
-from .company_utils import get_company_context
 
 logger = logging.getLogger(__name__)
 
 # Intents that should be routed to the smart query engine for data lookups
 DATA_QUERY_INTENTS = {
     'sales_query',
-    'inventory_query',
     'hr_query',
     'financial_query',
+    'purchases_query',
+    'crm_query',
+    'projects_query',
+    'pos_query',
+    'payroll_query',
 }
 
 # Intents that should be handled directly without AI
@@ -74,10 +78,7 @@ def process_chat_message(user, message, conversation_id=None):
         confidence,
     )
 
-    # ── Step 4: Get company context for data isolation ────────────────
-    company_context = get_company_context(user)
-
-    # ── Step 5: Route to appropriate handler ───────────────────────────
+    # ── Step 4: Route to appropriate handler ───────────────────────────
     if intent in DIRECT_RESPONSE_INTENTS:
         response_text = _get_direct_response(intent, user)
 
@@ -87,25 +88,24 @@ def process_chat_message(user, message, conversation_id=None):
             user=user,
             query_text=message,
             intent=intent,
-            company_context=company_context,
         )
 
     else:
         # General question → AI service
-        context = _build_context(user, company_context, conversation)
+        context = _build_context(user, conversation)
         response_text = generate_response(
             prompt=message,
             context=context,
         )
 
-    # ── Step 6: Save assistant response ───────────────────────────────
+    # ── Step 5: Save assistant response ───────────────────────────────
     assistant_message = Message.objects.create(
         conversation=conversation,
         role='assistant',
         content=response_text,
     )
 
-    # ── Step 7: Return result ─────────────────────────────────────────
+    # ── Step 6: Return result ─────────────────────────────────────────
     return {
         'response': response_text,
         'conversation_id': conversation.id,
@@ -116,9 +116,6 @@ def process_chat_message(user, message, conversation_id=None):
 def _get_or_create_conversation(user, conversation_id, first_message):
     """
     Retrieve an existing conversation or create a new one.
-
-    If conversation_id is provided, verify it belongs to the user and is active.
-    Otherwise, create a new conversation with a title based on the first message.
     """
     if conversation_id:
         try:
@@ -152,19 +149,27 @@ def _get_direct_response(intent, user):
 
     responses = {
         'greeting': (
-            f'مرحباً {user.username}! 👋 أنا المساعد الذكي لنظام ريادة ERP. '
-            'يمكنني مساعدتك في الاستعلامات عن المبيعات والمخزون والموارد البشرية '
-            'والشؤون المالية والإجابة على أسئلتك العامة. كيف يمكنني مساعدتك؟'
+            f'مرحباً {user.first_name or user.username}! 👋 أنا المساعد الذكي لنظام ريادة ERP. '
+            'يمكنني مساعدتك في الاستعلامات عن:\n\n'
+            '📊 **المبيعات** — مبيعات اليوم، الشهر، أفضل المنتجات\n'
+            '👥 **الموارد البشرية** — الموظفين، الحضور، الإجازات\n'
+            '💰 **المحاسبة** — الأرباح، المصروفات، الميزانية\n'
+            '🛒 **المشتريات** — أوامر الشراء، الموردين\n'
+            '🤝 **CRM** — العملاء، الفرص، التذاكر\n'
+            '📁 **المشاريع** — الحالة، المخاطر، الميزانيات\n'
+            '🏪 **نقاط البيع** — مبيعات اليوم، المنتجات الأكثر طلباً\n'
+            '💳 **الرواتب** — كشوف المرتبات\n\n'
+            'أو يمكنك سؤالي أي سؤال عام عن النظام. كيف يمكنني مساعدتك؟'
         ),
         'farewell': (
-            f'مع السلامة {user.username}! 😊 أتمنى أن أكون قد ساعدتك. '
+            f'مع السلامة {user.first_name or user.username}! 😊 أتمنى أن أكون قد ساعدتك. '
             'لا تتردد في العودة عند الحاجة. يوم سعيد!'
         ),
     }
     return responses.get(intent, 'شكراً لتواصلك معنا.')
 
 
-def _build_context(user, company_context, conversation):
+def _build_context(user, conversation):
     """
     Build a context string for the AI service containing
     user info and recent conversation history.
@@ -172,13 +177,17 @@ def _build_context(user, company_context, conversation):
     context_parts = []
 
     # User role info
-    role_display = user.get_role_display()
+    role_display = getattr(user, 'role_display', user.role or 'مستخدم')
     context_parts.append(f'دور المستخدم: {role_display}')
     context_parts.append(f'اسم المستخدم: {user.username}')
 
-    # Company info
-    if company_context.get('company_name'):
-        context_parts.append(f'الشركة: {company_context["company_name"]}')
+    # ERP modules available
+    context_parts.append(
+        'وحدات النظام المتاحة: المبيعات، المشتريات، المحاسبة، الموارد البشرية، '
+        'إدارة العلاقات (CRM)، المشاريع، نقاط البيع (POS)، الفوترة، المدفوعات، '
+        'الرواتب، الوثائق، المناقصات، الاستيراد والتصدير، صيانة المعدات، '
+        'التحليلات الذكية، لوحة المؤسس، الإشعارات، إدارة المستخدمين، المراجعة.'
+    )
 
     # Recent conversation history (last 6 messages for context window)
     recent_messages = conversation.messages.order_by('-created_at')[:6]

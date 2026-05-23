@@ -1,5 +1,6 @@
 """Data extraction utilities - converts Django ORM queries to pandas DataFrames.
-Uses DB-level aggregation (TruncMonth, TruncDate, annotate) for performance."""
+Uses DB-level aggregation (TruncMonth, TruncDate, annotate) for performance.
+Updated to support all 23 current ERP modules (post-cleanup)."""
 
 import pandas as pd
 import logging
@@ -243,3 +244,186 @@ def get_supplier_evaluation_data():
         })
 
     return pd.DataFrame(rows)
+
+
+# ── CRM Analytics Data ────────────────────────────────────────────────
+
+
+def get_crm_pipeline_data():
+    """Get CRM sales pipeline data.
+    Returns DataFrame with columns: stage, count, total_value
+    """
+    try:
+        from crm.models import Lead
+    except ImportError:
+        return pd.DataFrame(columns=['stage', 'count', 'total_value'])
+
+    data = Lead.objects.filter(
+        is_active=True
+    ).values('stage').annotate(
+        count=Count('id'),
+        total_value=Coalesce(Sum('estimated_value'), Value(0, output_field=DecimalField()))
+    ).order_by('stage')
+
+    if not data:
+        return pd.DataFrame(columns=['stage', 'count', 'total_value'])
+
+    df = pd.DataFrame(list(data))
+    df['total_value'] = df['total_value'].apply(decimal_to_float)
+    return df
+
+
+def get_crm_tickets_data(start_date=None):
+    """Get CRM support tickets data.
+    Returns DataFrame with columns: status, count, avg_resolution_hours
+    """
+    try:
+        from crm.models import Ticket
+    except ImportError:
+        return pd.DataFrame(columns=['status', 'count', 'avg_resolution_hours'])
+
+    qs = Ticket.objects.all()
+    if start_date:
+        qs = qs.filter(created_at__gte=start_date)
+
+    data = qs.values('status').annotate(
+        count=Count('id')
+    ).order_by('status')
+
+    if not data:
+        return pd.DataFrame(columns=['status', 'count'])
+
+    df = pd.DataFrame(list(data))
+    return df
+
+
+# ── POS Analytics Data ────────────────────────────────────────────────
+
+
+def get_pos_daily_sales(start_date=None):
+    """Get daily POS sales totals.
+    Returns DataFrame with columns: date, total_amount, transaction_count
+    """
+    try:
+        from pos.models import Sale
+    except ImportError:
+        return pd.DataFrame(columns=['date', 'total_amount', 'transaction_count'])
+
+    qs = Sale.objects.all()
+    if start_date:
+        qs = qs.filter(created_at__date__gte=start_date)
+
+    rows = qs.values_list('created_at__date', 'total_amount', 'id')
+    if not rows:
+        return pd.DataFrame(columns=['date', 'total_amount', 'transaction_count'])
+
+    df = pd.DataFrame(rows, columns=['date', 'total_amount', 'sale_id'])
+    df['date'] = pd.to_datetime(df['date'])
+    df['total_amount'] = df['total_amount'].apply(decimal_to_float)
+
+    daily = df.groupby('date').agg(
+        total_amount=('total_amount', 'sum'),
+        transaction_count=('sale_id', 'count')
+    ).reset_index()
+
+    return daily
+
+
+def get_pos_top_products(top_n=10):
+    """Get top selling products from POS.
+    Returns DataFrame with columns: product_name, quantity, revenue
+    """
+    try:
+        from pos.models import SaleItem
+    except ImportError:
+        return pd.DataFrame(columns=['product_name', 'quantity', 'revenue'])
+
+    data = SaleItem.objects.values('product_name').annotate(
+        quantity=Coalesce(Sum('quantity'), 0),
+        revenue=Coalesce(Sum('total'), Value(0, output_field=DecimalField()))
+    ).order_by('-quantity')[:top_n]
+
+    if not data:
+        return pd.DataFrame(columns=['product_name', 'quantity', 'revenue'])
+
+    df = pd.DataFrame(list(data))
+    df['revenue'] = df['revenue'].apply(decimal_to_float)
+    return df
+
+
+# ── Projects Analytics Data ──────────────────────────────────────────
+
+
+def get_projects_status_data():
+    """Get projects status distribution.
+    Returns DataFrame with columns: status, count, total_budget, total_spent
+    """
+    try:
+        from projects.models import Project
+    except ImportError:
+        return pd.DataFrame(columns=['status', 'count', 'total_budget', 'total_spent'])
+
+    data = Project.objects.values('status').annotate(
+        count=Count('id'),
+        total_budget=Coalesce(Sum('budget'), Value(0, output_field=DecimalField())),
+        total_spent=Coalesce(Sum('spent'), Value(0, output_field=DecimalField()))
+    ).order_by('status')
+
+    if not data:
+        return pd.DataFrame(columns=['status', 'count', 'total_budget', 'total_spent'])
+
+    df = pd.DataFrame(list(data))
+    df['total_budget'] = df['total_budget'].apply(decimal_to_float)
+    df['total_spent'] = df['total_spent'].apply(decimal_to_float)
+    return df
+
+
+def get_projects_risk_data():
+    """Get project risks summary.
+    Returns DataFrame with columns: severity, count
+    """
+    try:
+        from projects.models import Risk
+    except ImportError:
+        return pd.DataFrame(columns=['severity', 'count'])
+
+    data = Risk.objects.values('severity').annotate(
+        count=Count('id')
+    ).order_by('-count')
+
+    if not data:
+        return pd.DataFrame(columns=['severity', 'count'])
+
+    return pd.DataFrame(list(data))
+
+
+# ── Payroll Analytics Data ────────────────────────────────────────────
+
+
+def get_payroll_summary_data():
+    """Get payroll summary data.
+    Returns DataFrame with columns: month, total_gross, total_deductions, total_net, employee_count
+    """
+    try:
+        from payroll.models import Payslip
+    except ImportError:
+        return pd.DataFrame(columns=['month', 'total_gross', 'total_deductions', 'total_net', 'employee_count'])
+
+    data = Payslip.objects.annotate(
+        month=TruncMonth('pay_period_start')
+    ).values('month').annotate(
+        total_gross=Coalesce(Sum('gross_pay'), Value(0, output_field=DecimalField())),
+        total_deductions=Coalesce(Sum('total_deductions'), Value(0, output_field=DecimalField())),
+        total_net=Coalesce(Sum('net_pay'), Value(0, output_field=DecimalField())),
+        employee_count=Count('id')
+    ).order_by('month')
+
+    if not data:
+        return pd.DataFrame(columns=['month', 'total_gross', 'total_deductions', 'total_net', 'employee_count'])
+
+    df = pd.DataFrame(list(data))
+    df['month'] = pd.to_datetime(df['month'])
+    df['total_gross'] = df['total_gross'].apply(decimal_to_float)
+    df['total_deductions'] = df['total_deductions'].apply(decimal_to_float)
+    df['total_net'] = df['total_net'].apply(decimal_to_float)
+    return df

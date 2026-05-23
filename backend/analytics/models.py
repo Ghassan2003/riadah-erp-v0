@@ -46,7 +46,8 @@ class AnomalyRecord(models.Model):
         ('expense', 'مصروفات شاذة'),
         ('sales', 'مبيعات شاذة'),
         ('payment', 'مدفوعات شاذة'),
-        ('inventory', 'مخزون شاذ'),
+        ('purchase', 'مشتريات شاذة'),
+        ('payroll', 'رواتب شاذة'),
     ]
     SEVERITY_LEVELS = [
         ('low', 'منخفض'),

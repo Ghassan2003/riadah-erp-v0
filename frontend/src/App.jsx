@@ -90,6 +90,7 @@ const FounderDashboardPage = lazy(() => import('./pages/FounderDashboardPage'));
 const HRRecruitmentPage = lazy(() => import('./pages/HRRecruitmentPage'));
 const HRTrainingPage = lazy(() => import('./pages/HRTrainingPage'));
 const HROrgChartPage = lazy(() => import('./pages/HROrgChartPage'));
+const ChatbotPage = lazy(() => import('./pages/ChatbotPage'));
 
 /* Role-based dashboard router */
 function RoleDashboard() {
@@ -377,6 +378,13 @@ function App() {
                   } />
 
 
+
+                  {/* ===== المساعد الذكي ===== */}
+                  <Route path="/chatbot" element={
+                    <ProtectedRoute roles={['admin', 'sales', 'accountant', 'hr', 'purchasing', 'project_manager']}>
+                      <ChatbotPage />
+                    </ProtectedRoute>
+                  } />
 
                   {/* ===== التحليلات المتقدمة ===== */}
                   <Route path="/analytics" element={
