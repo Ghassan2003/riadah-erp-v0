@@ -79,18 +79,18 @@ export default function LandingPage() {
 
   /* ───── Services Data ───── */
   const services = [
-    { icon: <BarChart3 className="w-7 h-7" />, iconColor: 'bg-blue-500/20 text-blue-400', title: t('landing.s1Title'), desc: t('landing.s1Desc'), badge: t('landing.new') },
+    { icon: <BarChart3 className="w-7 h-7" />, iconColor: 'bg-blue-500/20 text-blue-400', title: t('landing.s1Title'), desc: t('landing.s1Desc') },
     { icon: <ShoppingCart className="w-7 h-7" />, iconColor: 'bg-emerald-500/20 text-emerald-400', title: t('landing.s2Title'), desc: t('landing.s2Desc') },
-    { icon: <Package className="w-7 h-7" />, iconColor: 'bg-amber-500/20 text-amber-400', title: t('landing.s3Title'), desc: t('landing.s3Desc') },
+    { icon: <Truck className="w-7 h-7" />, iconColor: 'bg-amber-500/20 text-amber-400', title: t('landing.s3Title'), desc: t('landing.s3Desc') },
     { icon: <FileText className="w-7 h-7" />, iconColor: 'bg-violet-500/20 text-violet-400', title: t('landing.s4Title'), desc: t('landing.s4Desc') },
-    { icon: <Users className="w-7 h-7" />, iconColor: 'bg-pink-500/20 text-pink-400', title: t('landing.s5Title'), desc: t('landing.s5Desc'), badge: t('landing.new') },
+    { icon: <Users className="w-7 h-7" />, iconColor: 'bg-pink-500/20 text-pink-400', title: t('landing.s5Title'), desc: t('landing.s5Desc') },
     { icon: <Building2 className="w-7 h-7" />, iconColor: 'bg-cyan-500/20 text-cyan-400', title: t('landing.s6Title'), desc: t('landing.s6Desc') },
-    { icon: <CreditCard className="w-7 h-7" />, iconColor: 'bg-orange-500/20 text-orange-400', title: t('landing.s7Title'), desc: t('landing.s7Desc') },
+    { icon: <HeartHandshake className="w-7 h-7" />, iconColor: 'bg-orange-500/20 text-orange-400', title: t('landing.s7Title'), desc: t('landing.s7Desc') },
     { icon: <ClipboardList className="w-7 h-7" />, iconColor: 'bg-teal-500/20 text-teal-400', title: t('landing.s8Title'), desc: t('landing.s8Desc') },
-    { icon: <Warehouse className="w-7 h-7" />, iconColor: 'bg-indigo-500/20 text-indigo-400', title: t('landing.s9Title'), desc: t('landing.s9Desc') },
-    { icon: <Truck className="w-7 h-7" />, iconColor: 'bg-rose-500/20 text-rose-400', title: t('landing.s10Title'), desc: t('landing.s10Desc') },
-    { icon: <Target className="w-7 h-7" />, iconColor: 'bg-sky-500/20 text-sky-400', title: t('landing.s11Title'), desc: t('landing.s11Desc'), badge: t('landing.new') },
-    { icon: <Layers className="w-7 h-7" />, iconColor: 'bg-lime-500/20 text-lime-400', title: t('landing.s12Title'), desc: t('landing.s12Desc') },
+    { icon: <ShieldCheck className="w-7 h-7" />, iconColor: 'bg-indigo-500/20 text-indigo-400', title: t('landing.s9Title'), desc: t('landing.s9Desc') },
+    { icon: <Calculator className="w-7 h-7" />, iconColor: 'bg-rose-500/20 text-rose-400', title: t('landing.s10Title'), desc: t('landing.s10Desc') },
+    { icon: <Store className="w-7 h-7" />, iconColor: 'bg-sky-500/20 text-sky-400', title: t('landing.s11Title'), desc: t('landing.s11Desc') },
+    { icon: <TrendingUp className="w-7 h-7" />, iconColor: 'bg-lime-500/20 text-lime-400', title: t('landing.s12Title'), desc: t('landing.s12Desc'), badge: t('landing.new') },
   ];
 
   const faqs = [
