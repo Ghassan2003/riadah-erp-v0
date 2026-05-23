@@ -130,7 +130,6 @@ export default function MainLayout() {
         { name: t('purchases'), path: '/purchases', icon: Truck, roles: ['admin', 'sales', 'accountant', 'purchasing'] },
         { name: t('projects'), path: '/projects', icon: FolderKanban, roles: ['admin', 'sales', 'accountant', 'project_manager'] },
         { name: t('documents'), path: '/documents', icon: FolderOpen, roles: ['admin', 'sales', 'accountant', 'hr', 'purchasing', 'project_manager'] },
-        { name: t('contracts'), path: '/contracts', icon: ScrollText, roles: ['admin', 'sales', 'accountant'] },
       ],
     },
     {
@@ -138,7 +137,6 @@ export default function MainLayout() {
       items: [
         { name: t('invoicing'), path: '/invoicing', icon: Receipt, roles: ['admin', 'accountant', 'sales'] },
         { name: t('payments'), path: '/payments', icon: Landmark, roles: ['admin', 'accountant'] },
-        { name: t('assets'), path: '/assets', icon: Building2, roles: ['admin', 'accountant'] },
       ],
     },
     {
@@ -150,14 +148,12 @@ export default function MainLayout() {
     {
       title: t('budgetAndTenders'),
       items: [
-        { name: t('budget'), path: '/budget', icon: Calculator, roles: ['admin', 'accountant', 'project_manager'] },
         { name: t('tenders'), path: '/tenders', icon: Gavel, roles: ['admin', 'project_manager'] },
       ],
     },
     {
       title: t('hrAndInsurance'),
       items: [
-        { name: t('insurance'), path: '/insurance', icon: ShieldCheck, roles: ['admin', 'hr'] },
         { name: t('equipMaint'), path: '/equip-maint', icon: Wrench, roles: ['admin'] },
       ],
     },
@@ -170,7 +166,6 @@ export default function MainLayout() {
     {
       title: t('complianceSection'),
       items: [
-        { name: t('internalAudit'), path: '/internal-audit', icon: Search, roles: ['admin'] },
         { name: t('analytics'), path: '/analytics', icon: TrendingUp, roles: ['admin', 'accountant', 'sales'] },
       ],
     },

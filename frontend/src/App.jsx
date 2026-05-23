@@ -64,14 +64,10 @@ const PayrollPage = lazy(() => import('./pages/PayrollPage'));
 const InvoicingPage = lazy(() => import('./pages/InvoicingPage'));
 const POSPage = lazy(() => import('./pages/POSPage'));
 
-const AssetsPage = lazy(() => import('./pages/AssetsPage'));
-const ContractsPage = lazy(() => import('./pages/ContractsPage'));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const AdvancedReportsPage = lazy(() => import('./pages/AdvancedReportsPage'));
-const BudgetPage = lazy(() => import('./pages/BudgetPage'));
 const TendersPage = lazy(() => import('./pages/TendersPage'));
-const InsurancePage = lazy(() => import('./pages/InsurancePage'));
 const ImportExportPage = lazy(() => import('./pages/ImportExportPage'));
 const EquipMaintPage = lazy(() => import('./pages/EquipMaintPage'));
 const CRMPage = lazy(() => import('./pages/CRMPage'));
@@ -86,7 +82,6 @@ const POSManagementPage = lazy(() => import('./pages/POSManagementPage'));
 const EmployeeSelfServicePage = lazy(() => import('./pages/EmployeeSelfServicePage'));
 const HolidayCalendarPage = lazy(() => import('./pages/HolidayCalendarPage'));
 const PayslipsPage = lazy(() => import('./pages/PayslipsPage'));
-const InternalAuditPage = lazy(() => import('./pages/InternalAuditPage'));
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 const ForecastingPage = lazy(() => import('./pages/ForecastingPage'));
 const AnomalyDetectionPage = lazy(() => import('./pages/AnomalyDetectionPage'));
@@ -284,11 +279,7 @@ function App() {
                       <ProjectsBudgetPage />
                     </ProtectedRoute>
                   } />
-                  <Route path="/contracts" element={
-                    <ProtectedRoute roles={['admin', 'sales', 'accountant']}>
-                      <ContractsPage />
-                    </ProtectedRoute>
-                  } />
+
 
                   {/* ===== المالية ===== */}
                   <Route path="/invoicing" element={
@@ -301,11 +292,7 @@ function App() {
                       <PaymentsPage />
                     </ProtectedRoute>
                   } />
-                  <Route path="/assets" element={
-                    <ProtectedRoute roles={['admin', 'accountant']}>
-                      <AssetsPage />
-                    </ProtectedRoute>
-                  } />
+
 
                   {/* ===== نقاط البيع ===== */}
                   <Route path="/pos" element={
@@ -319,12 +306,7 @@ function App() {
                     </ProtectedRoute>
                   } />
 
-                  {/* ===== الميزانية والعقود ===== */}
-                  <Route path="/budget" element={
-                    <ProtectedRoute roles={['admin', 'accountant', 'project_manager']}>
-                      <BudgetPage />
-                    </ProtectedRoute>
-                  } />
+                  {/* ===== الميزانيات والمناقصات ===== */}
                   <Route path="/tenders" element={
                     <ProtectedRoute roles={['admin', 'project_manager']}>
                       <TendersPage />
@@ -385,12 +367,7 @@ function App() {
                     </ProtectedRoute>
                   } />
 
-                  {/* ===== التأمين ===== */}
-                  <Route path="/insurance" element={
-                    <ProtectedRoute roles={['admin', 'hr']}>
-                      <InsurancePage />
-                    </ProtectedRoute>
-                  } />
+
 
                   {/* ===== صيانة المعدات ===== */}
                   <Route path="/equip-maint" element={
@@ -399,12 +376,7 @@ function App() {
                     </ProtectedRoute>
                   } />
 
-                  {/* ===== التدقيق الداخلي ===== */}
-                  <Route path="/internal-audit" element={
-                    <ProtectedRoute roles={['admin']}>
-                      <InternalAuditPage />
-                    </ProtectedRoute>
-                  } />
+
 
                   {/* ===== التحليلات المتقدمة ===== */}
                   <Route path="/analytics" element={
