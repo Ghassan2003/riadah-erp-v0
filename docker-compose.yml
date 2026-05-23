@@ -1,0 +1,177 @@
+# Docker Compose for Riadah ERP v2 — Advanced Version
+# Run: docker-compose up --build --force-recreate
+# env_file: .env (copy from env.sample)
+
+services:
+  # ── PostgreSQL 15 Database ──
+  db:
+    image: postgres:15-alpine
+    container_name: riadah_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-riadah_erp}
+      POSTGRES_USER: ${DB_USER:-riadah_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-riadah_dev_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-riadah_user} -d ${DB_NAME:-riadah_erp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (Cache + Celery + WebSocket Channels) ──
+  redis:
+    image: redis:7-alpine
+    container_name: riadah_redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Django Backend (Daphne ASGI) ──
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: riadah_backend
+    restart: unless-stopped
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py create_admin --noinput &&
+        python manage.py seed_startup_finance &&
+        python manage.py seed_sales &&
+        python manage.py seed_accounts &&
+        python manage.py seed_hr &&
+        python manage.py seed_purchases &&
+        python manage.py seed_projects &&
+        python manage.py seed_notifications &&
+        python manage.py seed_auditlog &&
+        python manage.py seed_videos &&
+        python manage.py seed_payroll &&
+        python manage.py seed_invoicing &&
+        python manage.py seed_pos &&
+        python manage.py seed_assets &&
+        python manage.py seed_contracts &&
+        python manage.py seed_payments &&
+        python manage.py seed_budget &&
+        python manage.py seed_crm &&
+        daphne -b 0.0.0.0 -p 8000 core.asgi:application
+      "
+    volumes:
+      - ./backend:/app
+      - media_data:/app/media
+    env_file:
+      - .env
+    environment:
+      - DEBUG=${DJANGO_DEBUG:-False}
+      - SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME:-riadah_erp}
+      - DB_USER=${DB_USER:-riadah_user}
+      - DB_PASSWORD=${DB_PASSWORD:-riadah_dev_password}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,backend,frontend}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:5173,http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  # ── Celery Worker (Background Tasks) ──
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: riadah_celery
+    restart: unless-stopped
+    command: celery -A core worker -l info --concurrency=2
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    environment:
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME:-riadah_erp}
+      - DB_USER=${DB_USER:-riadah_user}
+      - DB_PASSWORD=${DB_PASSWORD:-riadah_dev_password}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Celery Beat (Periodic Tasks Scheduler) ──
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: riadah_celery_beat
+    restart: unless-stopped
+    command: celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+    environment:
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME:-riadah_erp}
+      - DB_USER=${DB_USER:-riadah_user}
+      - DB_PASSWORD=${DB_PASSWORD:-riadah_dev_password}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── React Frontend (Nginx) ──
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: riadah_frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:

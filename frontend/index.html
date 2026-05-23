@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <!-- Mobile-first responsive viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+
+    <!-- Theme & PWA meta -->
+    <meta name="theme-color" content="#003366" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#001532" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="RIADAH - نظام تخطيط موارد المؤسسات | Enterprise Resource Planning" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- DNS prefetch & preconnect for performance -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonts: Cairo (UI) + Amiri (Arabic body) with font-display swap -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Preload critical SVG icon -->
+    <link rel="preload" href="/logo.png" as="image" type="image/png" fetchpriority="high" />
+
+    <title>RIADAH ERP</title>
+
+    <!-- Critical inline script: prevent FOUC (Flash of Unstyled Content) -->
+    <script>
+      (function() {
+        // Apply theme immediately to prevent flash
+        var theme = localStorage.getItem('erp_theme');
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+        // Apply locale direction
+        var locale = localStorage.getItem('erp_locale') || 'ar';
+        document.documentElement.setAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr');
+        document.documentElement.setAttribute('lang', locale);
+      })();
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-04-29T18:31:20.672619",
+  "summary": {
+    "tested_endpoints": 164,
+    "passed": 160,
+    "failed": 4,
+    "error_404_count": 0,
+    "error_405_count": 0,
+    "error_500_count": 3
+  },
+  "endpoints_404": [],
+  "endpoints_405": [],
+  "endpoints_500": [
+    {
+      "path": "/accounting/reports/ar-aging/",
+      "module": "reportsAPI",
+      "line": 196
+    },
+    {
+      "path": "/accounting/reports/ap-aging/",
+      "module": "reportsAPI",
+      "line": 197
+    },
+    {
+      "path": "/equip-maint/stats/",
+      "module": "equipMaintAPI",
+      "line": 827
+    }
+  ]
+}
