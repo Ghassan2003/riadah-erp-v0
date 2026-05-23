@@ -137,9 +137,6 @@ NO_AUTH_ENDPOINTS=(
     "GET:/api/chatbot/conversations/:Chatbot Conversations"
     "GET:/api/notifications/:Notifications"
     "GET:/api/documents/documents/:Documents"
-    "GET:/api/assets/assets/:Assets"
-    "GET:/api/assets/stats/:Assets Stats"
-    "GET:/api/contracts/contracts/:Contracts"
     "GET:/api/payments/payments/:Payments"
 )
 
@@ -207,9 +204,6 @@ AUTH_ENDPOINTS=(
     "GET:/api/chatbot/conversations/:Chatbot Conversations"
     "GET:/api/notifications/:Notifications"
     "GET:/api/documents/documents/:Documents"
-    "GET:/api/assets/assets/:Assets"
-    "GET:/api/assets/stats/:Assets Stats"
-    "GET:/api/contracts/contracts/:Contracts"
     "GET:/api/payments/payments/:Payments"
 )
 

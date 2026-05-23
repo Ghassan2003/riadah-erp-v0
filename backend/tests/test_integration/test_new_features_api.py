@@ -1,6 +1,6 @@
 """
-اختبارات التكامل لنقاط نهاية التطبيقات السبعة الجديدة.
-Integration Tests for the 7 New Feature APIs.
+اختبارات التكامل لنقاط نهاية التطبيقات الجديدة.
+Integration Tests for the New Feature APIs.
 """
 
 import pytest
@@ -241,123 +241,6 @@ class TestWarehouseEndpoints:
         assert response.status_code == status.HTTP_200_OK
 
 
-# ============================================================
-# 5. Fixed Assets API Tests
-# ============================================================
-
-class TestAssetsEndpoints:
-    """اختبارات نقاط نهاية نظام الأصول الثابتة."""
-
-    def test_asset_stats(self, authenticated_client):
-        """اختبار إحصائيات الأصول."""
-        response = authenticated_client.get('/api/assets/stats/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_list_categories(self, authenticated_client):
-        """اختبار قائمة تصنيفات الأصول."""
-        response = authenticated_client.get('/api/assets/categories/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_create_category(self, authenticated_client):
-        """اختبار إنشاء تصنيف أصل."""
-        response = authenticated_client.post('/api/assets/categories/', {
-            'name': 'الأثاث المكتبي',
-            'useful_life_years': 10,
-        })
-        assert response.status_code == status.HTTP_201_CREATED
-
-    def test_list_assets(self, authenticated_client):
-        """اختبار قائمة الأصول الثابتة."""
-        response = authenticated_client.get('/api/assets/assets/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_create_asset(self, authenticated_client, db):
-        """اختبار إنشاء أصل ثابت."""
-        from assets.models import AssetCategory
-        cat = AssetCategory.objects.create(
-            name='تصنيف اختبار', useful_life_years=5,
-            depreciation_method='straight_line',
-        )
-        response = authenticated_client.post('/api/assets/assets/', {
-            'name': 'طابعة كانون',
-            'category': cat.id,
-            'purchase_date': str(date.today()),
-            'purchase_price': '5000',
-            'useful_life_months': 60,
-        })
-        assert response.status_code == status.HTTP_201_CREATED
-        # قد يكون asset_number في مفتاح 'asset' أو مباشرة
-        data = response.data
-        asset_data = data.get('asset', data)
-        assert 'asset_number' in asset_data
-
-    def test_list_asset_transfers(self, authenticated_client):
-        """اختبار قائمة نقل الأصول."""
-        response = authenticated_client.get('/api/assets/transfers/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_list_maintenances(self, authenticated_client):
-        """اختبار قائمة صيانات الأصول."""
-        response = authenticated_client.get('/api/assets/maintenances/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_list_disposals(self, authenticated_client):
-        """اختبار قائمة تخريد الأصول."""
-        response = authenticated_client.get('/api/assets/disposals/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_asset_export(self, authenticated_client):
-        """اختبار تصدير بيانات الأصول."""
-        response = authenticated_client.get('/api/assets/assets/export/')
-        assert response.status_code == status.HTTP_200_OK
-
-
-# ============================================================
-# 6. Contracts API Tests
-# ============================================================
-
-class TestContractsEndpoints:
-    """اختبارات نقاط نهاية نظام العقود."""
-
-    def test_contract_stats(self, authenticated_client):
-        """اختبار إحصائيات العقود."""
-        response = authenticated_client.get('/api/contracts/stats/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_list_contracts(self, authenticated_client):
-        """اختبار قائمة العقود."""
-        response = authenticated_client.get('/api/contracts/contracts/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_create_contract(self, authenticated_client):
-        """اختبار إنشاء عقد."""
-        response = authenticated_client.post('/api/contracts/contracts/', {
-            'title': 'عقد صيانة أنظمة التبريد',
-            'contract_type': 'service',
-            'start_date': str(date.today()),
-            'end_date': str(date.today()),
-            'value': '120000',
-        })
-        assert response.status_code == status.HTTP_201_CREATED
-        data = response.data
-        contract_data = data.get('contract', data)
-        assert 'contract_number' in contract_data
-
-    def test_list_milestones(self, authenticated_client):
-        """اختبار قائمة مراحل العقود."""
-        response = authenticated_client.get('/api/contracts/milestones/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_list_contract_payments(self, authenticated_client):
-        """اختبار قائمة دفعات العقود."""
-        response = authenticated_client.get('/api/contracts/payments/')
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_contract_export(self, authenticated_client):
-        """اختبار تصدير بيانات العقود."""
-        response = authenticated_client.get('/api/contracts/contracts/export/')
-        assert response.status_code == status.HTTP_200_OK
-
 
 # ============================================================
 # 7. Payments (Collections & Transfers) API Tests
@@ -429,16 +312,6 @@ class TestNewFeaturesAccessControl:
     def test_warehouse_warehouse_allowed(self, warehouse_client):
         """اختبار السماح لدور المخازن بالوصول للمستودعات."""
         response = warehouse_client.get('/api/warehouse/stats/')
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
-
-    def test_assets_accountant_allowed(self, accountant_client):
-        """اختبار السماح للمحاسب بالوصول للأصول."""
-        response = accountant_client.get('/api/assets/stats/')
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
-
-    def test_contracts_sales_allowed(self, sales_client):
-        """اختبار السماح لدور المبيعات بالوصول للعقود."""
-        response = sales_client.get('/api/contracts/stats/')
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
 
     def test_payments_accountant_allowed(self, accountant_client):

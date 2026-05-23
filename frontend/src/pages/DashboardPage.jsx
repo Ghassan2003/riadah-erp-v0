@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
-import { dashboardAPI, notificationsAPI, assetsAPI, contractsAPI, paymentsAPI, payrollAPI, invoicingAPI } from '../api';
+import { dashboardAPI, notificationsAPI, paymentsAPI, payrollAPI, invoicingAPI } from '../api';
 import {
   Shield, User, Package, ShoppingCart, DollarSign, Users,
   Activity, AlertTriangle, TrendingUp, TrendingDown,
@@ -99,19 +99,15 @@ export default function DashboardPage() {
       const params = {};
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
-      const [statsRes, notifRes, astRes, conRes, payRes, prRes, invRes] = await Promise.all([
+      const [statsRes, notifRes, payRes, prRes, invRes] = await Promise.all([
         dashboardAPI.getStats(params),
         notificationsAPI.list().catch(() => null),
-        assetsAPI.getStats().catch(() => null),
-        contractsAPI.getStats().catch(() => null),
         paymentsAPI.getStats().catch(() => null),
         payrollAPI.getStats().catch(() => null),
         invoicingAPI.getStats().catch(() => null),
       ]);
       setData(prev => ({
         ...statsRes.data,
-        assets: astRes?.data || {},
-        contracts: conRes?.data || {},
         payments: payRes?.data || {},
         payroll: prRes?.data || {},
         invoicing: invRes?.data || {},
@@ -282,8 +278,6 @@ export default function DashboardPage() {
     { title: t('activeProjects'), value: d.projects?.active_projects ?? 0, icon: FolderKanban, color: 'cyan', sub: `${t('of')} ${d.projects?.total_projects ?? 0} ${t('total')}`, path: '/projects' },
     { title: t('purchases'), value: `${fmt(d.purchases?.total_purchases)} ${cur}`, icon: Truck, color: 'teal', sub: t('ordersTotal'), path: '/purchases' },
     { title: t('totalExpenses'), value: `${fmt(d.accounting?.total_expenses)} ${cur}`, icon: TrendingDown, color: 'red', sub: t('totalExpenses'), path: '/reports' },
-    { title: t('totalAssets'), value: d.assets?.total_assets ?? 0, icon: Landmark, color: 'purple', sub: `${t('active')}: ${d.assets?.active_assets ?? 0}`, path: '/assets' },
-    { title: t('activeContracts'), value: d.contracts?.active_contracts ?? 0, icon: FileSignature, color: 'rose', sub: `${t('totalValue')}: ${fmt(d.contracts?.total_value)} ${cur}`, path: '/contracts' },
     { title: t('pendingPayments'), value: d.payments?.pending_transactions ?? 0, icon: CreditCard, color: 'amber', sub: `${t('totalBalance')}: ${fmt(d.payments?.total_balance)} ${cur}`, path: '/payments' },
   ];
 
@@ -613,22 +607,22 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Contract Status Pie Chart */}
+        {/* Invoicing Status Donut Chart */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t('contractStatus') || 'حالة العقود'}</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t('invoiceStatus') || 'حالة الفواتير'}</h3>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 {(() => {
-                  const cData = d.contracts ? [
-                    { name: t('activeContracts') || 'نشطة', value: d.contracts.active_contracts || 0 },
-                    { name: t('expiredContracts') || 'منتهية', value: d.contracts.expired_contracts || 0 },
-                    { name: t('expiringSoon') || 'تنتهي قريباً', value: d.contracts.expiring_soon || 0 },
+                  const invData = d.invoicing ? [
+                    { name: t('paid') || 'مدفوعة', value: d.invoicing.total_paid || 0 },
+                    { name: t('unpaid') || 'غير مدفوعة', value: d.invoicing.total_unpaid || 0 },
+                    { name: t('overdue') || 'متأخرة', value: d.invoicing.total_overdue || 0 },
                   ].filter(s => s.value > 0) : [];
-                  return cData.length > 0 ? (
+                  return invData.length > 0 ? (
                     <PieChart>
-                      <Pie data={cData} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
-                        {cData.map((entry, i) => <Cell key={i} fill={['#10b981', '#ef4444', '#f59e0b'][i % 3]} stroke="none" />)}
+                      <Pie data={invData} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
+                        {invData.map((entry, i) => <Cell key={i} fill={['#10b981', '#f59e0b', '#ef4444'][i % 3]} stroke="none" />)}
                       </Pie>
                       <Tooltip content={<ChartTooltip isDark={isDark} locale={locale} fmt={fmt} />} />
                     </PieChart>
@@ -639,11 +633,11 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
             <div className="space-y-3 text-sm flex-1 min-w-0">
-              {d.contracts ? [
-                { label: t('activeContracts') || 'عقود نشطة', value: d.contracts.active_contracts, color: '#10b981' },
-                { label: t('expiredContracts') || 'عقود منتهية', value: d.contracts.expired_contracts, color: '#ef4444' },
-                { label: t('expiringSoon') || 'تنتهي قريباً', value: d.contracts.expiring_soon, color: '#f59e0b' },
-                { label: t('totalValue') || 'إجمالي القيمة', value: fmt(Math.round(d.contracts.total_value || 0)), color: '#3b82f6' },
+              {d.invoicing ? [
+                { label: t('totalPaid') || 'مدفوع', value: fmt(d.invoicing.total_paid || 0), color: '#10b981' },
+                { label: t('totalUnpaid') || 'غير مدفوع', value: fmt(d.invoicing.total_unpaid || 0), color: '#f59e0b' },
+                { label: t('totalOverdue') || 'متأخر', value: fmt(d.invoicing.total_overdue || 0), color: '#ef4444' },
+                { label: t('totalInvoices') || 'إجمالي', value: d.invoicing.total_invoices || 0, color: '#3b82f6' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
@@ -685,10 +679,10 @@ export default function DashboardPage() {
       {/* ── Module Stats Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: t('totalValue') || 'إجمالي قيمة العقود', value: d.contracts?.total_value || 0, color: 'purple', icon: FileSignature },
-          { label: t('assetsValue') || 'قيمة الأصول', value: d.assets?.total_current_value || 0, color: 'violet', icon: Landmark },
           { label: t('totalInvoices') || 'إجمالي الفواتير', value: d.invoicing?.total_invoices || 0, color: 'rose', icon: Receipt },
           { label: t('totalPayroll') || 'إجمالي الرواتب', value: d.payroll?.total_paid_this_month || 0, color: 'amber', icon: Wallet },
+          { label: t('pendingPayments') || 'مدفوعات معلقة', value: d.payments?.pending_transactions || 0, color: 'violet', icon: CreditCard },
+          { label: t('totalBalance') || 'إجمالي الرصيد', value: d.payments?.total_balance || 0, color: 'purple', icon: Landmark },
         ].map((item, i) => {
           const colorClasses = {
             purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300',
@@ -697,7 +691,7 @@ export default function DashboardPage() {
             amber: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300',
           };
           return (
-            <div key={i} onClick={() => navigate(['contracts', 'assets', 'invoices', 'payroll'][i])}
+            <div key={i} onClick={() => navigate(['/invoices', '/payroll', '/payments', '/payments'][i])}
               className={`rounded-xl p-3 sm:p-4 border transition-all cursor-pointer hover:shadow-md ${colorClasses[item.color]}`}>
               <div className="flex items-center gap-2 mb-1">
                 <item.icon className="w-4 h-4" />

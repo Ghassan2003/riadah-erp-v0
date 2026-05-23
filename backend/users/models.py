@@ -240,8 +240,6 @@ class Permission(models.Model):
         ('invoicing', 'الفواتير'),
         ('payroll', 'الرواتب والأجور'),
         ('warehouse', 'المستودعات'),
-        ('assets', 'الأصول الثابتة'),
-        ('contracts', 'العقود'),
         ('payments', 'المدفوعات'),
         ('videos', 'الفيديوهات التعليمية'),
     )

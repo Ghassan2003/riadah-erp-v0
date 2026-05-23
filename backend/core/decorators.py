@@ -19,8 +19,6 @@ _MODULE_LABELS = {
     'documents': 'المستندات',
     'projects': 'المشاريع',
     'pos': 'نقاط البيع',
-    'assets': 'الأصول الثابتة',
-    'contracts': 'العقود',
     'payments': 'المدفوعات',
     'payroll': 'الرواتب والأجور',
     'invoicing': 'الفواتير',

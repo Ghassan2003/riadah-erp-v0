@@ -512,8 +512,6 @@ export const exportAPI = {
   suppliers: () => api.get('/purchases/suppliers/export/', { responseType: 'blob' }),
   purchaseOrders: () => api.get('/purchases/orders/export/', { responseType: 'blob' }),
   projects: () => api.get('/projects/export/', { responseType: 'blob' }),
-  assets: () => api.get('/assets/assets/export/', { responseType: 'blob' }),
-  contracts: () => api.get('/contracts/export/', { responseType: 'blob' }),
   invoices: () => api.get('/invoicing/export/', { responseType: 'blob' }),
   payroll: () => api.get('/payroll/export/', { responseType: 'blob' }),
   pos: (params) => api.get('/pos/export/', { params, responseType: 'blob' }),
@@ -747,36 +745,6 @@ export const payrollAPI = {
   deleteEndOfService: (id) => api.delete(`/payroll/end-of-service/${id}/delete/`),
 };
 
-// Fixed Assets API
-export const assetsAPI = {
-  getStats: () => api.get('/assets/stats/'),
-  getAssets: (params) => api.get('/assets/assets/', { params }),
-  createAsset: (data) => api.post('/assets/assets/', data),
-  getAsset: (id) => api.get(`/assets/assets/${id}/`),
-  updateAsset: (id, data) => api.patch(`/assets/assets/${id}/`, data),
-  deleteAsset: (id) => api.delete(`/assets/assets/${id}/delete/`),
-  restoreAsset: (id) => api.post(`/assets/assets/${id}/restore/`),
-  transferAsset: (data) => api.post('/assets/transfers/create/', data),
-  disposeAsset: (data) => api.post('/assets/disposals/create/', data),
-  depreciateAll: () => api.post('/assets/depreciation/'),
-  getCategories: (params) => api.get('/assets/categories/', { params }),
-  createCategory: (data) => api.post('/assets/categories/', data),
-  getMaintenances: (params) => api.get('/assets/maintenances/', { params }),
-  createMaintenance: (data) => api.post('/assets/maintenances/create/', data),
-  getDisposals: (params) => api.get('/assets/disposals/', { params }),
-  export: () => api.get('/assets/export/', { responseType: 'blob' }),
-  getTransfers: (params) => api.get('/assets/transfers/', { params }),
-  getTransfer: (id) => api.get(`/assets/transfers/${id}/`),
-  updateTransfer: (id, data) => api.patch(`/assets/transfers/${id}/update/`, data),
-  deleteTransfer: (id) => api.delete(`/assets/transfers/${id}/delete/`),
-  getMaintenance: (id) => api.get(`/assets/maintenances/${id}/`),
-  updateMaintenance: (id, data) => api.patch(`/assets/maintenances/${id}/update/`, data),
-  deleteMaintenance: (id) => api.delete(`/assets/maintenances/${id}/delete/`),
-  getDisposal: (id) => api.get(`/assets/disposals/${id}/`),
-  updateDisposal: (id, data) => api.patch(`/assets/disposals/${id}/update/`, data),
-  deleteDisposal: (id) => api.delete(`/assets/disposals/${id}/delete/`),
-};
-
 // Fiscal Closure API
 export const fiscalClosureAPI = {
   getFiscalYears: (params) => api.get('/accounting/closure/fiscal-years/', { params }),
@@ -818,30 +786,6 @@ export const costAllocationAPI = {
   getAllocationLogs: (params) => api.get('/accounting/cost/allocation-logs/', { params }),
 };
 
-// Contracts API
-export const contractsAPI = {
-  getStats: () => api.get('/contracts/stats/'),
-  getContracts: (params) => api.get('/contracts/', { params }),
-  createContract: (data) => api.post('/contracts/create/', data),
-  getContract: (id) => api.get(`/contracts/${id}/`),
-  updateContract: (id, data) => api.patch(`/contracts/${id}/`, data),
-  deleteContract: (id) => api.delete(`/contracts/${id}/delete/`),
-  restoreContract: (id) => api.post(`/contracts/${id}/restore/`),
-  createMilestone: (data) => api.post('/contracts/milestones/create/', data),
-  changeStatus: (id, data) => api.post(`/contracts/${id}/change-status/`, data),
-  renewContract: (id, data) => api.post(`/contracts/${id}/renew/`, data),
-  getMilestones: (params) => api.get('/contracts/milestones/', { params }),
-  updateMilestone: (id, data) => api.patch(`/contracts/milestones/${id}/update/`, data),
-  getContractPayments: (params) => api.get('/contracts/contract-payments/', { params }),
-  createContractPayment: (data) => api.post('/contracts/contract-payments/create/', data),
-  export: () => api.get('/contracts/export/', { responseType: 'blob' }),
-  getMilestone: (id) => api.get(`/contracts/milestones/${id}/`),
-  deleteMilestone: (id) => api.delete(`/contracts/milestones/${id}/delete/`),
-  getContractPayment: (id) => api.get(`/contracts/contract-payments/${id}/`),
-  updateContractPayment: (id, data) => api.patch(`/contracts/contract-payments/${id}/update/`, data),
-  deleteContractPayment: (id) => api.delete(`/contracts/contract-payments/${id}/delete/`),
-};
-
 // Financial Payments API
 export const paymentsAPI = {
   getStats: () => api.get('/payments/stats/'),
@@ -877,23 +821,6 @@ export const attachmentsAPI = {
   bulkDelete: (ids) => api.post('/attachments/bulk-delete/', { ids }),
 };
 
-// Budget API
-export const budgetAPI = {
-  getStats: () => api.get('/budget/stats/'),
-  getBudgets: (params) => api.get('/budget/budgets/', { params }),
-  getBudget: (id) => api.get(`/budget/budgets/${id}/`),
-  deleteBudget: (id) => api.delete(`/budget/budgets/${id}/delete/`),
-  getCategories: (params) => api.get('/budget/categories/', { params }),
-  getCategory: (id) => api.get(`/budget/categories/${id}/`),
-  getItems: (params) => api.get('/budget/items/', { params }),
-  getItem: (id) => api.get(`/budget/items/${id}/`),
-  getTransfers: (params) => api.get('/budget/transfers/', { params }),
-  approveTransfer: (id) => api.post(`/budget/transfers/${id}/approve/`),
-  getExpenses: (params) => api.get('/budget/expenses/', { params }),
-  approveExpense: (id) => api.post(`/budget/expenses/${id}/approve/`),
-  export: () => api.get('/budget/export/', { responseType: 'blob' }),
-};
-
 // Tenders API
 export const tendersAPI = {
   getStats: () => api.get('/tenders/stats/'),
@@ -913,24 +840,6 @@ export const tendersAPI = {
   getAward: (id) => api.get(`/tenders/awards/${id}/`),
   approveAward: (id) => api.post(`/tenders/awards/${id}/approve/`),
   export: () => api.get('/tenders/export/', { responseType: 'blob' }),
-};
-
-// Insurance API
-export const insuranceAPI = {
-  getStats: () => api.get('/insurance/stats/'),
-  getPolicies: (params) => api.get('/insurance/policies/', { params }),
-  createPolicy: (data) => api.post('/insurance/policies/create/', data),
-  getPolicy: (id) => api.get(`/insurance/policies/${id}/`),
-  getClaims: (params) => api.get('/insurance/claims/', { params }),
-  submitClaim: (data) => api.post('/insurance/claims/submit/', data),
-  getClaim: (id) => api.get(`/insurance/claims/${id}/`),
-  reviewClaim: (id, data) => api.post(`/insurance/claims/${id}/review/`, data),
-  getPensions: (params) => api.get('/insurance/pensions/', { params }),
-  createPension: (data) => api.post('/insurance/pensions/create/', data),
-  getPension: (id) => api.get(`/insurance/pensions/${id}/`),
-  getPensionPayments: (params) => api.get('/insurance/pension-payments/', { params }),
-  createPensionPayment: (data) => api.post('/insurance/pension-payments/create/', data),
-  export: () => api.get('/insurance/export/', { responseType: 'blob' }),
 };
 
 // Import/Export API
@@ -1044,29 +953,6 @@ export const crmAPI = {
   updateCommission: (id, data) => api.patch(`/crm/commissions/${id}/`, data),
   deleteCommission: (id) => api.delete(`/crm/commissions/${id}/delete/`),
   commissionStats: (params) => api.get('/crm/commission-stats/', { params }),
-};
-
-// Internal Audit API
-export const internalAuditAPI = {
-  getStats: () => api.get('/internal-audit/stats/'),
-  getPlans: (params) => api.get('/internal-audit/plans/', { params }),
-  getPlan: (id) => api.get(`/internal-audit/plans/${id}/`),
-  createPlan: (data) => api.post('/internal-audit/plans/', data),
-  completePlan: (id) => api.post(`/internal-audit/plans/${id}/complete/`),
-  getFindings: (params) => api.get('/internal-audit/findings/', { params }),
-  getFinding: (id) => api.get(`/internal-audit/findings/${id}/`),
-  createFinding: (data) => api.post('/internal-audit/findings/create/', data),
-  resolveFinding: (id, data) => api.post(`/internal-audit/findings/${id}/resolve/`, data),
-  getEvidence: (params) => api.get('/internal-audit/evidence/', { params }),
-  createEvidence: (data) => api.post('/internal-audit/evidence/create/', data),
-  getActions: (params) => api.get('/internal-audit/actions/', { params }),
-  getAction: (id) => api.get(`/internal-audit/actions/${id}/`),
-  createAction: (data) => api.post('/internal-audit/actions/create/', data),
-  completeAction: (id) => api.post(`/internal-audit/actions/${id}/complete/`),
-  getComplianceChecks: (params) => api.get('/internal-audit/compliance/', { params }),
-  getComplianceCheck: (id) => api.get(`/internal-audit/compliance/${id}/`),
-  performComplianceCheck: (id, data) => api.post(`/internal-audit/compliance/${id}/perform/`, data),
-  export: () => api.get('/internal-audit/export/', { responseType: 'blob' }),
 };
 
 // ── Startup Finance API ──

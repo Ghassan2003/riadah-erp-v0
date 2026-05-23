@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 import { useNavigate } from 'react-router-dom';
-import { accountingAPI, invoicingAPI, paymentsAPI, payrollAPI, assetsAPI, budgetAPI, dashboardAPI, notificationsAPI } from '../api';
+import { accountingAPI, invoicingAPI, paymentsAPI, payrollAPI, dashboardAPI, notificationsAPI } from '../api';
 import {
   DollarSign, TrendingUp, TrendingDown, Check, Wallet, Landmark,
   Activity, AlertTriangle, Clock, Filter, RefreshCw, Loader2,
@@ -86,13 +86,11 @@ export default function AccountantDashboard() {
       const params = {};
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
-      const [accRes, invRes, payRes, prRes, astRes, budRes, dashRes, notifRes] = await Promise.all([
+      const [accRes, invRes, payRes, prRes, dashRes, notifRes] = await Promise.all([
         accountingAPI.getStats().catch(() => null),
         invoicingAPI.getStats().catch(() => null),
         paymentsAPI.getStats().catch(() => null),
         payrollAPI.getStats().catch(() => null),
-        assetsAPI.getStats().catch(() => null),
-        budgetAPI.getStats().catch(() => null),
         dashboardAPI.getStats(params).catch(() => null),
         notificationsAPI.list().catch(() => null),
       ]);
@@ -101,8 +99,6 @@ export default function AccountantDashboard() {
         invoicing: invRes?.data || {},
         payments: payRes?.data || {},
         payroll: prRes?.data || {},
-        assets: astRes?.data || {},
-        budget: budRes?.data || {},
         dashboard: dashRes?.data || {},
       });
       if (notifRes) setNotifications(notifRes.data.results || []);
@@ -211,13 +207,14 @@ export default function AccountantDashboard() {
     return items;
   }, [d, t]);
 
-  const budgetData = useMemo(() => {
-    const allocated = parseFloat(d.budget?.total_allocated || 0);
-    const utilized = parseFloat(d.budget?.total_utilized || 0);
-    const remaining = Math.max(allocated - utilized, 0);
+  const paymentDistributionData = useMemo(() => {
+    const balance = parseFloat(d.payments?.total_balance || 0);
+    const received = parseFloat(d.payments?.monthly_receipts_total || 0);
+    const paid = parseFloat(d.payments?.monthly_payments_total || 0);
     return [
-      { name: t('utilized') || 'مستهلك', value: utilized },
-      { name: t('remaining') || 'متبقي', value: remaining },
+      { name: t('totalBalance') || 'الرصيد', value: balance },
+      { name: t('receipts') || 'المقبوضات', value: received },
+      { name: t('payments') || 'المدفوعات', value: paid },
     ].filter(s => s.value > 0);
   }, [d, t]);
 
@@ -244,7 +241,6 @@ export default function AccountantDashboard() {
     { title: t('netProfit') || 'صافي الربح', value: `${fmt(d.accounting?.net_profit)} ${cur}`, icon: DollarSign, color: d.accounting?.net_profit >= 0 ? 'blue' : 'red', sub: d.accounting?.net_profit >= 0 ? '↑' : '↓', path: '/reports' },
     { title: t('totalPaid') || 'إجمالي المدفوع', value: `${fmt(d.invoicing?.total_paid)} ${cur}`, icon: Check, color: 'teal', sub: `${d.invoicing?.total_invoices ?? 0} ${t('totalInvoices') || 'فواتير'}`, path: '/invoices' },
     { title: t('payrollThisMonth') || 'رواتب الشهر', value: `${fmt(d.payroll?.total_paid_this_month)} ${cur}`, icon: Wallet, color: 'indigo', sub: `${d.payroll?.total_pending_records ?? 0} ${t('pending') || 'معلقة'}`, path: '/payroll' },
-    { title: t('totalAssetsValue') || 'قيمة الأصول', value: `${fmt(d.assets?.total_current_value)} ${cur}`, icon: Landmark, color: 'purple', sub: `${d.assets?.total_assets ?? 0} ${t('totalAssets') || 'أصل'}`, path: '/assets' },
   ];
 
   const quickActions = [
@@ -253,7 +249,6 @@ export default function AccountantDashboard() {
     { title: t('financialReports') || 'التقارير المالية', icon: BarChart3, path: '/reports' },
     { title: t('payments') || 'المدفوعات', icon: CreditCard, path: '/payments' },
     { title: t('invoicing') || 'الفوترة', icon: Receipt, path: '/invoices' },
-    { title: t('assets') || 'الأصول', icon: Landmark, path: '/assets' },
   ];
 
   return (
@@ -493,17 +488,17 @@ export default function AccountantDashboard() {
           </div>
         </div>
 
-        {/* Budget Utilization Donut Chart */}
+        {/* Payment Distribution Donut Chart */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t('budgetUtilization') || 'استهلاك الميزانية'}</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t('paymentDistribution') || 'توزيع المدفوعات'}</h3>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
-                {budgetData.length > 0 ? (
+                {paymentDistributionData.length > 0 ? (
                   <PieChart>
-                    <Pie data={budgetData} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
-                      {budgetData.map((entry, i) => (
-                        <Cell key={i} fill={['#8b5cf6', '#06b6d4'][i % 2]} stroke="none" />
+                    <Pie data={paymentDistributionData} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
+                      {paymentDistributionData.map((entry, i) => (
+                        <Cell key={i} fill={['#3b82f6', '#10b981', '#f59e0b'][i % 3]} stroke="none" />
                       ))}
                     </Pie>
                     <Tooltip content={<ChartTooltip isDark={isDark} locale={locale} fmt={fmt} />} />
@@ -515,14 +510,14 @@ export default function AccountantDashboard() {
             </div>
             <div className="space-y-3 text-sm flex-1 min-w-0">
               {[
-                { label: t('allocated') || 'المخصص', value: d.budget?.total_allocated || 0, color: '#8b5cf6' },
-                { label: t('utilized') || 'المستهلك', value: d.budget?.total_utilized || 0, color: '#06b6d4' },
-                { label: t('activeBudgets') || 'ميزانيات نشطة', value: d.budget?.active_budgets_count || 0, color: '#10b981' },
+                { label: t('totalBalance') || 'إجمالي الرصيد', value: fmt(d.payments?.total_balance || 0), color: '#3b82f6' },
+                { label: t('monthlyReceipts') || 'إيصالات الشهر', value: fmt(d.payments?.monthly_receipts_total || 0), color: '#10b981' },
+                { label: t('monthlyPayments') || 'مدفوعات الشهر', value: fmt(d.payments?.monthly_payments_total || 0), color: '#f59e0b' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                   <span className="text-gray-600 dark:text-gray-400 truncate flex-1 text-xs sm:text-sm">{item.label}</span>
-                  <span className="text-gray-900 dark:text-gray-100 font-bold text-xs sm:text-sm" dir="ltr">{typeof item.value === 'number' ? fmt(item.value) : item.value}</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-bold text-xs sm:text-sm" dir="ltr">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -536,7 +531,7 @@ export default function AccountantDashboard() {
           { label: t('totalBalance') || 'إجمالي الرصيد', value: d.payments?.total_balance || 0, color: 'purple', icon: CreditCard },
           { label: t('monthlyReceipts') || 'إيصالات الشهر', value: d.payments?.monthly_receipts_total || 0, color: 'green', icon: TrendingUp },
           { label: t('monthlyPayments') || 'مدفوعات الشهر', value: d.payments?.monthly_payments_total || 0, color: 'red', icon: TrendingDown },
-          { label: t('activeBudgets') || 'ميزانيات نشطة', value: d.budget?.active_budgets_count || 0, color: 'blue', icon: PieIcon },
+          { label: t('totalInvoices') || 'إجمالي الفواتير', value: d.invoicing?.total_invoices || 0, color: 'blue', icon: Receipt },
         ].map((item, i) => {
           const colorClasses = {
             purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300',

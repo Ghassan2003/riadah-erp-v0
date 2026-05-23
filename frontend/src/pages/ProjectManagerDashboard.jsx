@@ -8,10 +8,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 import { useNavigate } from 'react-router-dom';
-import { projectsAPI, contractsAPI, budgetAPI, dashboardAPI, notificationsAPI } from '../api';
+import { projectsAPI, dashboardAPI, notificationsAPI } from '../api';
 import {
   FolderKanban, Activity, Check, DollarSign, TrendingUp,
-  FileSignature, AlertTriangle, Loader2, Filter, RefreshCw, Clock,
+  AlertTriangle, Loader2, Filter, RefreshCw, Clock,
   Bell, BellOff, Package, FileText, Users,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -85,16 +85,12 @@ export default function ProjectManagerDashboard() {
       const params = {};
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
-      const [projRes, conRes, budRes, notifRes] = await Promise.all([
+      const [projRes, notifRes] = await Promise.all([
         projectsAPI.getStats().catch(() => null),
-        contractsAPI.getStats().catch(() => null),
-        budgetAPI.getStats().catch(() => null),
         notificationsAPI.list().catch(() => null),
       ]);
       setData({
         projects: projRes?.data || {},
-        contracts: conRes?.data || {},
-        budget: budRes?.data || {},
       });
       if (notifRes) setNotifications(notifRes.data.results || []);
     } catch {
@@ -144,16 +140,6 @@ export default function ProjectManagerDashboard() {
     { name: t('totalSpent') || 'إجمالي المصروف', value: parseFloat(data?.projects?.total_spent || 0) },
   ], [data, t]);
 
-  const contractStatusData = useMemo(() => {
-    const c = data?.contracts || {};
-    const statuses = [
-      { name: t('active') || 'نشطة', value: c.active_contracts || 0 },
-      { name: t('expired') || 'منتهية', value: c.expired_contracts || 0 },
-      { name: t('expiringSoon') || 'تنتهي قريباً', value: c.expiring_soon || 0 },
-    ];
-    return statuses.filter(s => s.value > 0);
-  }, [data, t]);
-
   const projectStatusData = useMemo(() => {
     const p = data?.projects || {};
     const statuses = [
@@ -166,13 +152,12 @@ export default function ProjectManagerDashboard() {
   }, [data, t]);
 
   const budgetUtilizationData = useMemo(() => {
-    const b = data?.budget || {};
-    const allocated = parseFloat(b.total_allocated || 0);
-    const utilized = parseFloat(b.total_utilized || 0);
-    const remaining = Math.max(allocated - utilized, 0);
+    const budget = parseFloat(data?.projects?.total_budget || 0);
+    const spent = parseFloat(data?.projects?.total_spent || 0);
+    const remaining = Math.max(budget - spent, 0);
     const utilData = [];
-    if (utilized > 0) utilData.push({ name: t('utilized') || 'مستخدم', value: utilized });
-    if (remaining > 0) utilData.push({ name: t('remaining') || 'متبقي', value: remaining });
+    if (spent > 0) utilData.push({ name: t('totalSpent') || 'المصروف', value: spent });
+    if (remaining > 0) utilData.push({ name: t('budgetRemaining') || 'المتبقي', value: remaining });
     return utilData;
   }, [data, t]);
 
@@ -230,7 +215,6 @@ export default function ProjectManagerDashboard() {
     { title: t('completedProjects') || 'المشاريع المكتملة', value: d.projects?.completed_projects ?? 0, icon: Check, color: 'green', sub: t('done') || 'منتهية', path: '/projects' },
     { title: t('totalBudget') || 'الميزانية الكلية', value: `${fmt(d.projects?.total_budget)} ${cur}`, icon: DollarSign, color: 'emerald', sub: t('budget') || 'الميزانية', path: '/budget' },
     { title: t('totalSpent') || 'إجمالي المصروف', value: `${fmt(d.projects?.total_spent)} ${cur}`, icon: TrendingUp, color: 'amber', sub: `${budgetUsagePercent}% ${t('usage') || 'استخدام'}`, path: '/projects' },
-    { title: t('activeContracts') || 'العقود النشطة', value: d.contracts?.active_contracts ?? 0, icon: FileSignature, color: 'purple', sub: `${t('totalValue')}: ${fmt(d.contracts?.total_value || 0)} ${cur}`, path: '/contracts' },
   ];
 
   const colorMap = {
@@ -250,8 +234,6 @@ export default function ProjectManagerDashboard() {
 
   const quickActions = [
     { title: t('projects') || 'المشاريع', icon: FolderKanban, path: '/projects' },
-    { title: t('contracts') || 'العقود', icon: FileSignature, path: '/contracts' },
-    { title: t('budget') || 'الميزانية', icon: DollarSign, path: '/budget' },
     { title: t('documents') || 'المستندات', icon: FileText, path: '/documents' },
   ];
 
@@ -419,43 +401,49 @@ export default function ProjectManagerDashboard() {
           </div>
         </div>
 
-        {/* Contract Status Donut Chart */}
+        {/* Project Status Donut Chart */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t('contractStatus') || 'حالة العقود'}</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">{t('projectStatus') || 'حالة المشاريع'}</h3>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
-                {contractStatusData.length > 0 ? (
-                  <PieChart>
-                    <Pie data={contractStatusData} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
-                      {contractStatusData.map((entry, i) => (
-                        <Cell key={i} fill={['#10b981', '#ef4444', '#f59e0b'][i % 3]} stroke="none" />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<ChartTooltip isDark={isDark} locale={locale} fmt={fmt} />} />
-                  </PieChart>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">{t('noData')}</div>
-                )}
+                {(() => {
+                  const pData = d.projects ? [
+                    { name: t('active') || 'نشط', value: d.projects.active_projects || 0 },
+                    { name: t('completed') || 'مكتمل', value: d.projects.completed_projects || 0 },
+                    { name: t('onHold') || 'متوقف', value: d.projects.on_hold_projects || 0 },
+                    { name: t('cancel') || 'ملغي', value: d.projects.cancelled_projects || 0 },
+                  ].filter(s => s.value > 0) : [];
+                  return pData.length > 0 ? (
+                    <PieChart>
+                      <Pie data={pData} cx="50%" cy="50%" innerRadius="55%" outerRadius="80%" paddingAngle={4} dataKey="value" animationBegin={0} animationDuration={800}>
+                        {pData.map((entry, i) => <Cell key={i} fill={['#10b981', '#3b82f6', '#f59e0b', '#ef4444'][i % 4]} stroke="none" />)}
+                      </Pie>
+                      <Tooltip content={<ChartTooltip isDark={isDark} locale={locale} fmt={fmt} />} />
+                    </PieChart>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">{t('noData')}</div>
+                  );
+                })()}
               </ResponsiveContainer>
             </div>
             <div className="space-y-3 text-sm flex-1 min-w-0">
-              {[
-                { label: t('activeContracts') || 'عقود نشطة', value: d.contracts?.active_contracts, color: '#10b981' },
-                { label: t('expiredContracts') || 'عقود منتهية', value: d.contracts?.expired_contracts, color: '#ef4444' },
-                { label: t('expiringSoon') || 'تنتهي قريباً', value: d.contracts?.expiring_soon, color: '#f59e0b' },
-                { label: t('totalValue') || 'إجمالي القيمة', value: fmt(Math.round(d.contracts?.total_value || 0)), color: '#3b82f6' },
+              {d.projects ? [
+                { label: t('activeProjects') || 'مشاريع نشطة', value: d.projects.active_projects, color: '#10b981' },
+                { label: t('completedProjects') || 'مشاريع مكتملة', value: d.projects.completed_projects, color: '#3b82f6' },
+                { label: t('onHold') || 'متوقفة', value: d.projects.on_hold_projects, color: '#f59e0b' },
+                { label: t('cancelledProjects') || 'ملغاة', value: d.projects.cancelled_projects, color: '#ef4444' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                   <span className="text-gray-600 dark:text-gray-400 truncate flex-1 text-xs sm:text-sm">{item.label}</span>
                   <span className="text-gray-900 dark:text-gray-100 font-bold text-xs sm:text-sm" dir="ltr">{typeof item.value === 'number' ? item.value : item.value}</span>
                 </div>
-              ))}
+              )) : <div className="flex items-center justify-center h-full text-gray-400 text-sm">{t('noData')}</div>}
               <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{t('totalContracts') || 'إجمالي العقود'}</span>
-                  <span className="font-bold text-sm text-gray-900 dark:text-gray-100" dir="ltr">{d.contracts?.total_contracts || 0}</span>
+                  <span className="text-xs text-gray-500">{t('totalProjects') || 'إجمالي المشاريع'}</span>
+                  <span className="font-bold text-sm text-gray-900 dark:text-gray-100" dir="ltr">{d.projects?.total_projects || 0}</span>
                 </div>
               </div>
             </div>
@@ -511,9 +499,9 @@ export default function ProjectManagerDashboard() {
             </div>
             <div className="space-y-3 text-sm flex-1 min-w-0">
               {[
-                { label: t('totalAllocated') || 'إجمالي المخصص', value: fmt(Math.round(d.budget?.total_allocated || 0)), color: '#3b82f6' },
-                { label: t('totalUtilized') || 'إجمالي المستخدم', value: fmt(Math.round(d.budget?.total_utilized || 0)), color: '#f59e0b' },
-                { label: t('activeBudgets') || 'ميزانيات نشطة', value: d.budget?.active_budgets_count || 0, color: '#10b981' },
+                { label: t('totalBudget') || 'الميزانية الكلية', value: fmt(Math.round(d.projects?.total_budget || 0)), color: '#3b82f6' },
+                { label: t('totalSpent') || 'المصروف', value: fmt(Math.round(d.projects?.total_spent || 0)), color: '#f59e0b' },
+                { label: t('budgetRemaining') || 'المتبقي', value: fmt(Math.round(budgetRemaining)), color: '#10b981' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
@@ -523,8 +511,8 @@ export default function ProjectManagerDashboard() {
               ))}
               <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">{t('totalBudgets') || 'إجمالي الميزانيات'}</span>
-                  <span className="font-bold text-sm text-gray-900 dark:text-gray-100" dir="ltr">{d.budget?.total_budgets || 0}</span>
+                  <span className="text-xs text-gray-500">{t('budgetUsage') || 'نسبة الاستخدام'}</span>
+                  <span className="font-bold text-sm text-gray-900 dark:text-gray-100" dir="ltr">{budgetUsagePercent}%</span>
                 </div>
               </div>
             </div>
@@ -537,8 +525,8 @@ export default function ProjectManagerDashboard() {
         {[
           { label: t('totalBudget') || 'الميزانية الكلية', value: d.projects?.total_budget || 0, color: 'green', icon: DollarSign },
           { label: t('budgetRemaining') || 'الميزانية المتبقية', value: budgetRemaining, color: 'blue', icon: TrendingUp },
-          { label: t('pendingMilestones') || 'مراحل معلقة', value: d.contracts?.pending_milestones || 0, color: 'amber', icon: Clock },
-          { label: t('contractValue') || 'قيمة العقود', value: d.contracts?.total_value || 0, color: 'purple', icon: FileSignature },
+          { label: t('pendingTasks') || 'مهام معلقة', value: d.projects?.overdue_tasks || 0, color: 'amber', icon: Clock },
+          { label: t('budgetUsage') || 'نسبة الاستخدام', value: `${budgetUsagePercent}%`, color: 'purple', icon: TrendingUp },
         ].map((item, i) => {
           const colorClasses = {
             green: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300',
@@ -584,50 +572,21 @@ export default function ProjectManagerDashboard() {
                 </div>
               </div>
             )}
-            {/* Expiring Contracts Alert */}
-            {(d.contracts?.expiring_soon ?? 0) > 0 && (
+            {(budgetUsagePercent > 90) && (
               <div className="px-4 py-3 bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <DollarSign className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{d.contracts.expiring_soon} {t('expiringContracts') || 'عقود تنتهي قريباً'}</p>
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{t('needsRenewal') || 'تحتاج تجديد'}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Pending Payments Alert */}
-            {(d.contracts?.pending_payments ?? 0) > 0 && (
-              <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                    <DollarSign className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{d.contracts.pending_payments} {t('pendingPayments') || 'مدفوعات معلقة'}</p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{t('pending') || 'في الانتظار'}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* Pending Milestones */}
-            {(d.contracts?.pending_milestones ?? 0) > 0 && (
-              <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
-                    <Activity className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{d.contracts.pending_milestones} {t('pendingMilestones') || 'مراحل معلقة'}</p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{t('inProgress') || 'قيد التنفيذ'}</p>
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{budgetUsagePercent}% {t('budgetUsage') || 'استخدام الميزانية'}</p>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">{t('budgetWarning') || 'اقترب من استنفاذ الميزانية'}</p>
                   </div>
                 </div>
               </div>
             )}
             {/* No alerts */}
-            {(d.projects?.overdue_tasks ?? 0) === 0 && (d.contracts?.expiring_soon ?? 0) === 0 && (d.contracts?.pending_payments ?? 0) === 0 && (d.contracts?.pending_milestones ?? 0) === 0 && (
+            {(d.projects?.overdue_tasks ?? 0) === 0 && budgetUsagePercent <= 90 && (
               <div className="p-8 text-center">
                 <Check className="w-8 h-8 text-green-300 dark:text-green-600 mx-auto mb-2" />
                 <p className="text-sm text-gray-400 dark:text-gray-500">{t('noAlerts') || 'لا توجد تنبيهات'}</p>
@@ -685,12 +644,12 @@ export default function ProjectManagerDashboard() {
           <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-center">
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t('completedMilestones') || 'مراحل مكتملة'}</p>
-                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">{d.contracts?.completed_milestones ?? 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('completedProjects') || 'مشاريع مكتملة'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">{d.projects?.completed_projects ?? 0}</p>
               </div>
               <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-center">
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t('totalPaid') || 'إجمالي المدفوع'}</p>
-                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5" dir="ltr">{fmt(d.contracts?.total_paid || 0)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('budgetRemaining') || 'الميزانية المتبقية'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5" dir="ltr">{fmt(budgetRemaining)} {cur}</p>
               </div>
             </div>
           </div>

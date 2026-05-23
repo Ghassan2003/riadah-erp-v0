@@ -966,10 +966,6 @@ class SeedPermissionsView(APIView):
             ('payroll', 'view'), ('payroll', 'create'), ('payroll', 'edit'), ('payroll', 'export'),
             # المستودعات
             ('warehouse', 'view'), ('warehouse', 'create'), ('warehouse', 'edit'), ('warehouse', 'delete'), ('warehouse', 'export'),
-            # الأصول الثابتة
-            ('assets', 'view'), ('assets', 'create'), ('assets', 'edit'), ('assets', 'delete'),
-            # العقود
-            ('contracts', 'view'), ('contracts', 'create'), ('contracts', 'edit'), ('contracts', 'delete'), ('contracts', 'approve'),
             # المدفوعات
             ('payments', 'view'), ('payments', 'create'), ('payments', 'edit'), ('payments', 'delete'),
             # الفيديوهات التعليمية
@@ -1101,8 +1097,6 @@ class OwnerRegisterView(APIView):
             ('invoicing', 'view'), ('invoicing', 'create'), ('invoicing', 'edit'), ('invoicing', 'delete'), ('invoicing', 'export'),
             ('payroll', 'view'), ('payroll', 'create'), ('payroll', 'edit'), ('payroll', 'export'),
             ('warehouse', 'view'), ('warehouse', 'create'), ('warehouse', 'edit'), ('warehouse', 'delete'), ('warehouse', 'export'),
-            ('assets', 'view'), ('assets', 'create'), ('assets', 'edit'), ('assets', 'delete'),
-            ('contracts', 'view'), ('contracts', 'create'), ('contracts', 'edit'), ('contracts', 'delete'), ('contracts', 'approve'),
             ('payments', 'view'), ('payments', 'create'), ('payments', 'edit'), ('payments', 'delete'),
             ('videos', 'view'), ('videos', 'create'), ('videos', 'delete'), ('videos', 'manage'),
         ]

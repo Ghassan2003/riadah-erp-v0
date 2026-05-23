@@ -127,42 +127,6 @@ def _handle_invoice_status_change(sender, instance, **kwargs):
 
 
 # =============================================
-# معالجات إشعارات العقود
-# =============================================
-
-def _handle_contract_status_change(sender, instance, **kwargs):
-    """
-    إرسال إشعار عند تغيير حالة عقد.
-    """
-    from notifications.models import Notification
-
-    status = getattr(instance, 'status', None)
-    if not status:
-        return
-
-    contract_title = getattr(instance, 'title', '') or str(instance.id)
-
-    if status == 'active':
-        Notification.notify_by_roles(
-            roles=['admin'],
-            title='تفعيل عقد جديد',
-            message=f'تم تفعيل العقد: {contract_title}',
-            notification_type='contract',
-            link='/contracts',
-        )
-
-    elif status == 'expired':
-        Notification.notify_by_roles(
-            roles=['admin'],
-            title='انتهاء عقد',
-            message=f'انتهت صلاحية العقد: {contract_title}',
-            notification_type='warning',
-            priority='high',
-            link='/contracts',
-        )
-
-
-# =============================================
 # معالجات إشعارات المخزون المنخفض (محسّنة)
 # =============================================
 

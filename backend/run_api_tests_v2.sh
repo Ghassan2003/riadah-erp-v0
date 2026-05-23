@@ -125,11 +125,6 @@ test_ep "Chatbot Convos" GET "/api/chatbot/conversations/" 0 ""
 test_ep "Notifications" GET "/api/notifications/" 0 ""
 # --- Documents ---
 test_ep "Documents" GET "/api/documents/" 0 ""
-# --- Assets ---
-test_ep "Assets" GET "/api/assets/assets/" 0 ""
-test_ep "Assets Stats" GET "/api/assets/stats/" 0 ""
-# --- Contracts ---
-test_ep "Contracts" GET "/api/contracts/" 0 ""
 # --- Payments ---
 test_ep "Payment Txns" GET "/api/payments/transactions/" 0 ""
 
@@ -198,11 +193,6 @@ test_ep "Chatbot Chat" POST "/api/chatbot/chat/" 1 '{"message":"مرحبا"}'
 test_ep "Notifications" GET "/api/notifications/" 1 ""
 # --- Documents ---
 test_ep "Documents" GET "/api/documents/" 1 ""
-# --- Assets ---
-test_ep "Assets" GET "/api/assets/assets/" 1 ""
-test_ep "Assets Stats" GET "/api/assets/stats/" 1 ""
-# --- Contracts ---
-test_ep "Contracts" GET "/api/contracts/" 1 ""
 # --- Payments ---
 test_ep "Payment Txns" GET "/api/payments/transactions/" 1 ""
 
@@ -231,7 +221,6 @@ test_ep "Task endpoint /api/users/stats/" GET "/api/users/stats/" 0 ""
 test_ep "Task endpoint /api/invoicing/invoices/" GET "/api/invoicing/invoices/" 0 ""
 test_ep "Task endpoint /api/analytics/forecasting/" GET "/api/analytics/forecasting/" 0 ""
 test_ep "Task endpoint /api/documents/documents/" GET "/api/documents/documents/" 0 ""
-test_ep "Task endpoint /api/contracts/contracts/" GET "/api/contracts/contracts/" 0 ""
 test_ep "Task endpoint /api/payments/payments/" GET "/api/payments/payments/" 0 ""
 
 # Kill server

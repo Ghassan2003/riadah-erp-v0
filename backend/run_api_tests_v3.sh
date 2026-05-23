@@ -149,11 +149,6 @@ test_ep_noauth "Chatbot Convos" GET "/api/chatbot/conversations/" ""
 test_ep_noauth "Notifications" GET "/api/notifications/" ""
 # --- Documents ---
 test_ep_noauth "Documents" GET "/api/documents/" ""
-# --- Assets ---
-test_ep_noauth "Assets" GET "/api/assets/assets/" ""
-test_ep_noauth "Assets Stats" GET "/api/assets/stats/" ""
-# --- Contracts ---
-test_ep_noauth "Contracts" GET "/api/contracts/" ""
 # --- Payments ---
 test_ep_noauth "Payment Txns" GET "/api/payments/transactions/" ""
 
@@ -222,11 +217,6 @@ test_ep_auth "Chatbot Chat" POST "/api/chatbot/chat/" '{"message":"مرحبا"}'
 test_ep_auth "Notifications" GET "/api/notifications/" ""
 # --- Documents ---
 test_ep_auth "Documents" GET "/api/documents/" ""
-# --- Assets ---
-test_ep_auth "Assets" GET "/api/assets/assets/" ""
-test_ep_auth "Assets Stats" GET "/api/assets/stats/" ""
-# --- Contracts ---
-test_ep_auth "Contracts" GET "/api/contracts/" ""
 # --- Payments ---
 test_ep_auth "Payment Txns" GET "/api/payments/transactions/" ""
 
@@ -254,7 +244,6 @@ test_ep_noauth "WRONG /api/users/stats/" GET "/api/users/stats/" ""
 test_ep_noauth "WRONG /api/invoicing/invoices/" GET "/api/invoicing/invoices/" ""
 test_ep_noauth "WRONG /api/analytics/forecasting/" GET "/api/analytics/forecasting/" ""
 test_ep_noauth "WRONG /api/documents/documents/" GET "/api/documents/documents/" ""
-test_ep_noauth "WRONG /api/contracts/contracts/" GET "/api/contracts/contracts/" ""
 test_ep_noauth "WRONG /api/payments/payments/" GET "/api/payments/payments/" ""
 test_ep_noauth "WRONG /api/crm/pipeline-funnel/" GET "/api/crm/pipeline-funnel/" ""
 
