@@ -29,15 +29,6 @@ const API_BASE = '/api';
 
 /** Get the stored JWT access token. */
 function getToken() {
-  try {
-    const raw = localStorage.getItem('auth_tokens');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed.access || parsed.token || null;
-    }
-  } catch {
-    // fallback: direct key
-  }
   return localStorage.getItem('access_token') || null;
 }
 

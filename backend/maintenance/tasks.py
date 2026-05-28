@@ -185,7 +185,7 @@ def task_auto_backup(config):
 @register_task('inventory_alerts')
 def task_inventory_alerts(config):
     """تنبيهات المخزون المنخفض."""
-    # TODO: inventory module removed - task disabled
+    # Inventory alerts disabled (inventory module removed)
     return {'status': 'disabled', 'message': 'inventory module removed'}
 
 

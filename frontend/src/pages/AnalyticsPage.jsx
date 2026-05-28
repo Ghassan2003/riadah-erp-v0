@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { ordersAPI, accountingAPI, dashboardAPI } from '../api';
+import { ordersAPI, accountingAPI, dashboardAPI, analyticsAPI } from '../api';
 import toast from 'react-hot-toast';
 import {
   DollarSign, TrendingDown, TrendingUp, Users, ShoppingCart, Package,
@@ -78,16 +78,18 @@ export default function AnalyticsPage() {
   const loadDashboardData = async () => {
     setLd(true);
     try {
-      const [salesRes, accountingRes, inventoryRes, analyticsRes] = await Promise.all([
-        ordersAPI.getStats(),
-        accountingAPI.getStats(),
-        Promise.resolve({ data: {} }), // productsAPI removed (inventory app deleted)
-        dashboardAPI.getAnalytics(),
+      const [salesRes, accountingRes, dashboardRes, salesAnalyticsRes, liveRes] = await Promise.all([
+        ordersAPI.getStats().catch(() => null),
+        accountingAPI.getStats().catch(() => null),
+        dashboardAPI.getStats().catch(() => null),
+        analyticsAPI.sales({}).catch(() => null),
+        dashboardAPI.liveStats().catch(() => null),
       ]);
-      const salesData = salesRes.data || {};
-      const acctData = accountingRes.data || {};
-      const invData = inventoryRes.data || {};
-      const analyticsData = analyticsRes.data || {};
+      const salesData = salesRes?.data || {};
+      const acctData = accountingRes?.data || {};
+      const analyticsData = dashboardRes?.data || {};
+      const reportsData = salesAnalyticsRes?.data || {};
+      const liveData = liveRes?.data || {};
 
       setStats({
         total_revenue: salesData.total_revenue || acctData.total_revenue || 0,
@@ -95,7 +97,7 @@ export default function AnalyticsPage() {
         net_profit: acctData.net_profit || (salesData.total_revenue || 0) - (acctData.total_expenses || 0),
         active_customers: salesData.active_customers || 0,
         total_orders: salesData.total_orders || 0,
-        total_products: invData.total_products || 0,
+        total_products: analyticsData.total_products || acctData.total_products || 0,
       });
       setFinancialSummary({
         income: acctData.total_income || acctData.total_revenue || salesData.total_revenue || 0,
@@ -103,14 +105,24 @@ export default function AnalyticsPage() {
         profit: acctData.net_profit || (acctData.total_income || 0) - (acctData.total_expenses || 0),
       });
 
-      // Real data from analytics endpoint
-      setTopProducts(analyticsData.top_products || []);
-      setRecentActivities(analyticsData.recent_activities || []);
-      setMonthlyComparison(analyticsData.monthly_comparison || []);
+      // top_products — from sales analytics reports endpoint
+      if (Array.isArray(reportsData.top_products)) {
+        setTopProducts(reportsData.top_products);
+      }
+
+      // recent_activities — from live stats or dashboard stats
+      const activities = liveData.recent_activity || analyticsData.recent_activities || [];
+      setRecentActivities(Array.isArray(activities) ? activities : []);
+
+      // monthly_comparison — from sales analytics reports endpoint
+      if (Array.isArray(reportsData.monthly_comparison)) {
+        setMonthlyComparison(reportsData.monthly_comparison);
+      } else if (Array.isArray(reportsData.monthly_sales)) {
+        setMonthlyComparison(reportsData.monthly_sales);
+      }
     } catch (err) {
       console.error('Error loading analytics data:', err);
       toast.error('خطأ في تحميل بيانات التحليلات');
-      // Set empty arrays on error - no mock data
       setTopProducts([]);
       setRecentActivities([]);
       setMonthlyComparison([]);
@@ -122,7 +134,8 @@ export default function AnalyticsPage() {
   useEffect(() => { loadDashboardData(); }, []);
 
   const hExport = async () => {
-    try { toast.success('تم تصدير التقرير بنجاح'); } catch { toast.error('خطأ في التصدير'); }
+    // TODO: implement actual export logic
+    toast.info('تصدير التقرير غير متاح حالياً');
   };
 
   const Modal = ({ k, title, children }) => modals[k] && (

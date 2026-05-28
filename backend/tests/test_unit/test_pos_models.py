@@ -166,7 +166,7 @@ class TestPOSRefundModel:
     def test_refund_methods(self, db):
         """اختبار طرق الإرجاع."""
         from pos.models import POSRefund
-        methods = ['cash', 'card', 'original']
+        methods = ['cash', 'card', 'online', 'mixed', 'original']
         actual = [c[0] for c in POSRefund.REFUND_METHOD_CHOICES]
         assert actual == methods
 

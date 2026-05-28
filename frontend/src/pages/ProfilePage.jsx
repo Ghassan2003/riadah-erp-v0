@@ -79,7 +79,7 @@ export default function ProfilePage() {
       try {
         const res = await passwordPolicyAPI.info();
         setPasswordPolicy(res.data);
-      } catch { /* silent */ }
+      } catch (error) { console.error('Error:', error); }
     };
     fetchPolicy();
   }, []);

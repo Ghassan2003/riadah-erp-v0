@@ -75,7 +75,7 @@ export default function EquipMaintPage() {
   const badge = (s) => `px-2.5 py-1 rounded-full text-xs font-medium ${SC[s] || ''}`;
   const Th = ({ children }) => <th className="px-4 py-3 text-right font-medium">{children}</th>;
 
-  useEffect(() => { (async () => { try { setStats((await equipMaintAPI.getStats()).data); } catch {} })(); }, []);
+  useEffect(() => { (async () => { try { setStats((await equipMaintAPI.getStats()).data); } catch (error) { console.error('Error:', error); } })(); }, []);
   useEffect(() => { (async () => { setLd(true); try { setEquipment((await equipMaintAPI.getEquipment({ search, status: sFilter })).data.results || []); } catch { toast.error('خطأ في تحميل المعدات'); } finally { setLd(false); } })(); }, [search, sFilter]);
   useEffect(() => { (async () => { if (tab === 'schedules') { setLd(true); try { setSchedules((await equipMaintAPI.getSchedules({ search, status: sFilter })).data.results || []); } catch { toast.error('خطأ في تحميل الجداول'); } finally { setLd(false); } } })(); }, [tab, search, sFilter]);
   useEffect(() => { (async () => { if (tab === 'work_orders') { setLd(true); try { setWorkOrders((await equipMaintAPI.getWorkOrders({ search, status: sFilter })).data.results || []); } catch { toast.error('خطأ في تحميل أوامر العمل'); } finally { setLd(false); } } })(); }, [tab, search, sFilter]);

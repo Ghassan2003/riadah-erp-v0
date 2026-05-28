@@ -47,13 +47,14 @@ def run_supplier_evaluation():
         df['quality_score'] = df['quality_score'].fillna(
             df['quality_score'].mean() if df['quality_score'].notna().any() else 70
         )
-    except Exception:
+    except (ImportError, LookupError):
         # Fallback if tenders module not available
         df['quality_score'] = 70.0
 
     # Financial score: based on total purchase amount (normalize to 0-100)
+    # Higher spending = stronger relationship = higher score
     if df['total_amount'].max() > 0:
-        df['financial_score'] = (1 - df['total_amount'] / df['total_amount'].max()) * 40 + 60
+        df['financial_score'] = (df['total_amount'] / df['total_amount'].max()) * 40 + 60
     else:
         df['financial_score'] = 70.0  # default
 
@@ -101,7 +102,7 @@ def run_supplier_evaluation():
     tier_summary = df['rating_tier'].value_counts().to_dict()
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Supplier evaluation complete: {created_count} created, {updated_count} updated, {duration_ms}ms")
+    logger.info("Supplier evaluation complete: %d created, %d updated, %dms", created_count, updated_count, duration_ms)
 
     return {
         'status': 'success',

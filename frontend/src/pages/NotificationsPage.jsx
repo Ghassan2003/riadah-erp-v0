@@ -246,7 +246,7 @@ export default function NotificationsPage() {
       await notificationsAPI.markRead(notif.id);
       setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n)));
       await fetchStats();
-    } catch { /* silent */ }
+    } catch (error) { console.error('Error:', error); }
   };
 
   const handleDelete = async (id) => {

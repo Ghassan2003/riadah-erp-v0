@@ -76,7 +76,7 @@ export default function DocumentsPage() {
     try {
       const response = await documentsAPI.categories();
       setCategories(Array.isArray(response.data) ? response.data : []);
-    } catch { /* silent */ }
+    } catch (error) { console.error('Error:', error); }
   };
 
   useEffect(() => {

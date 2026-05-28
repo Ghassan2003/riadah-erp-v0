@@ -81,7 +81,7 @@ export default function ProjectsRiskPage() {
     try {
       const r = await projectsAPI.list({ page_size: 100 });
       setProjects(r.data.results || r.data || []);
-    } catch {}
+    } catch (error) { console.error('Error:', error); }
   }, []);
 
   const fetchRisks = useCallback(async () => {

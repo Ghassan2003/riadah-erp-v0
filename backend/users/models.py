@@ -7,7 +7,6 @@ Includes: 2FA (TOTP), Password Policy, Granular Permissions
 from django.contrib.auth.models import AbstractUser, UserManager as BaseUserManager
 from django.db import models
 import pyotp
-import base64
 import secrets
 
 
@@ -94,6 +93,17 @@ class User(AbstractUser):
         verbose_name='IP آخر تسجيل دخول',
     )
 
+    # ===== Account Lockout Fields =====
+    failed_login_attempts = models.IntegerField(
+        default=0,
+        verbose_name='محاولات تسجيل الدخول الفاشلة',
+    )
+    locked_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='مقفل حتى',
+    )
+
     class Meta:
         verbose_name = 'مستخدم'
         verbose_name_plural = 'المستخدمون'
@@ -126,7 +136,7 @@ class User(AbstractUser):
 
     @property
     def is_purchasing(self):
-        return self.role in ('admin', 'purchasing', 'warehouse')
+        return self.role in ('admin', 'purchasing')
 
     @property
     def is_project_manager(self):

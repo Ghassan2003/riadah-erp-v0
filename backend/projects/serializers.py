@@ -287,7 +287,12 @@ class ProjectPhaseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectPhase
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'name', 'phase_type', 'phase_type_display',
+            'status', 'status_display', 'start_date', 'end_date',
+            'progress', 'order', 'description',
+            'created_at', 'updated_at',
+        ]
         read_only_fields = ('id', 'created_at', 'updated_at')
 
 
@@ -306,7 +311,11 @@ class ProjectMilestoneListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectMilestone
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'phase', 'name', 'due_date',
+            'completed_at', 'status', 'status_display', 'description',
+            'created_at',
+        ]
         read_only_fields = ('id', 'created_at', 'completed_at')
 
 
@@ -327,7 +336,11 @@ class BudgetItemListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BudgetItem
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'category', 'category_display', 'name',
+            'planned_amount', 'actual_amount', 'variance', 'variance_percent',
+            'description', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('id', 'actual_amount', 'variance', 'created_at', 'updated_at')
 
     def get_variance_percent(self, obj):
@@ -355,7 +368,14 @@ class ProjectRiskListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectRisk
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'risk_name', 'category', 'category_display',
+            'probability', 'impact', 'risk_score',
+            'status', 'status_display', 'response_strategy', 'response_strategy_display',
+            'response_plan', 'owner', 'owner_name',
+            'due_date', 'resolved_at', 'notes',
+            'created_at', 'updated_at',
+        ]
         read_only_fields = ('id', 'risk_score', 'created_at', 'updated_at', 'resolved_at')
 
 
@@ -386,7 +406,11 @@ class TimeEntryListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TimeEntry
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'task', 'task_title', 'user', 'user_name',
+            'date', 'hours', 'description', 'billable', 'hourly_rate',
+            'total_amount', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('id', 'total_amount', 'created_at', 'updated_at')
 
 
@@ -414,7 +438,13 @@ class ProjectContractListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectContract
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'contract_number', 'customer', 'customer_name',
+            'contract_type', 'contract_type_display', 'total_value',
+            'start_date', 'end_date', 'payment_terms', 'billing_schedule',
+            'status', 'status_display', 'notes',
+            'created_at', 'updated_at',
+        ]
         read_only_fields = ('id', 'created_at', 'updated_at')
 
 
@@ -434,7 +464,11 @@ class ProjectDocumentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectDocument
-        fields = '__all__'
+        fields = [
+            'id', 'project', 'title', 'doc_type', 'doc_type_display',
+            'file', 'description', 'uploaded_by', 'uploaded_by_name',
+            'version', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('id', 'version', 'uploaded_by', 'created_at', 'updated_at')
 
 

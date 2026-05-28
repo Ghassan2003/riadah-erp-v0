@@ -219,7 +219,7 @@ function TransactionsTab({ t, fmt, fmtInt }) {
     try {
       const r = await paymentsAPI.getAccounts({ page_size: 200 });
       setAccounts(r.data.results || (Array.isArray(r.data) ? r.data : []));
-    } catch { /* silent */ }
+    } catch (error) { console.error('Error:', error); }
   }, []);
 
   useEffect(() => { fetchStats(); fetch(1); fetchAccounts(); }, [fetchStats, fetch, fetchAccounts]);
@@ -984,7 +984,7 @@ function ReconciliationsTab({ t, fmt }) {
     try {
       const r = await paymentsAPI.getAccounts({ page_size: 200 });
       setAccounts(r.data.results || (Array.isArray(r.data) ? r.data : []));
-    } catch { /* silent */ }
+    } catch (error) { console.error('Error:', error); }
   }, []);
 
   useEffect(() => { fetch(1); fetchAccounts(); }, [fetch, fetchAccounts]);

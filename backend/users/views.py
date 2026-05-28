@@ -3,9 +3,9 @@ API views for user authentication and profile management.
 Includes: Auth, 2FA, Permissions, Password Policy.
 """
 
-import json
 from django.conf import settings
-from rest_framework import generics, status, permissions, views
+from django.utils import timezone
+from rest_framework import generics, status, permissions, views, serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -58,12 +58,69 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        data = super().validate(attrs)
+        # Check account lockout before attempting authentication
+        try:
+            from users.models import User
+            username = attrs.get(self.username_field)
+            user = User.objects.get(username=username)
+
+            # Check if user is locked out
+            if user.locked_until and timezone.now() < user.locked_until:
+                from datetime import timedelta
+                remaining_minutes = (user.locked_until - timezone.now()).total_seconds() / 60
+                raise serializers.ValidationError({
+                    'error': f'الحساب مقفل. حاول مرة أخرى بعد {int(remaining_minutes)} دقيقة'
+                })
+
+            # Clear lockout if it has expired
+            if user.locked_until and timezone.now() >= user.locked_until:
+                user.failed_login_attempts = 0
+                user.locked_until = None
+                user.save(update_fields=['failed_login_attempts', 'locked_until'])
+        except User.DoesNotExist:
+            pass
+        except serializers.ValidationError:
+            raise
+
+        try:
+            data = super().validate(attrs)
+        except Exception as e:
+            # Increment failed login attempts on authentication failure
+            try:
+                from users.models import User
+                username = attrs.get(self.username_field)
+                user = User.objects.get(username=username)
+                user.failed_login_attempts += 1
+                MAX_ATTEMPTS = 5
+                LOCKOUT_MINUTES = 15
+                if user.failed_login_attempts >= MAX_ATTEMPTS:
+                    from datetime import timedelta
+                    user.locked_until = timezone.now() + timedelta(minutes=LOCKOUT_MINUTES)
+                    user.save(update_fields=['failed_login_attempts', 'locked_until'])
+                else:
+                    user.save(update_fields=['failed_login_attempts'])
+            except Exception:
+                pass
+            raise e
+
+        # Reset failed attempts on successful login
+        if hasattr(self, 'user') and self.user:
+            self.user.failed_login_attempts = 0
+            self.user.locked_until = None
+            self.user.save(update_fields=['failed_login_attempts', 'locked_until'])
 
         # Check if 2FA is enabled for this user
         if self.user.two_factor_enabled:
-            data['requires_2fa'] = True
-            data['temp_token'] = str(data['access'])[:20]  # Partial token for 2FA step
+            data['requires_2FA'] = True
+            # Store the full token in cache for the 2FA verification step
+            from django.core.cache import cache
+            temp_token_id = f'2fa_{self.user.id}_{timezone.now().timestamp()}'
+            cache.set(temp_token_id, {
+                'user_id': self.user.id,
+                'access': str(data['access']),
+                'refresh': str(data['refresh']),
+            }, timeout=120)  # 2 minutes to complete 2FA
+            data['temp_token'] = temp_token_id
             # Don't return full tokens yet - need 2FA verification
             data.pop('access', None)
             data.pop('refresh', None)
@@ -123,11 +180,19 @@ class TwoFactorLoginView(APIView):
 
         code = serializer.validated_data['code']
         temp_token = request.data.get('temp_token', '')
-        username = request.data.get('username', '')
 
-        # Find user by username
+        # Verify temp_token from cache
+        from django.core.cache import cache
+        cached = cache.get(temp_token) if temp_token else None
+        if not cached:
+            return Response(
+                {'error': 'رمز التحقق منتهي الصلاحية أو غير صالح. يرجى تسجيل الدخول مرة أخرى.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Find user from cache
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(pk=cached['user_id'])
         except User.DoesNotExist:
             return Response(
                 {'error': 'المستخدم غير موجود'},
@@ -141,13 +206,10 @@ class TwoFactorLoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Generate full tokens
-        from rest_framework_simplejwt.tokens import RefreshToken
-        refresh = RefreshToken.for_user(user)
-        refresh['username'] = user.username
-        refresh['role'] = user.role
-        refresh['email'] = user.email
-        refresh['two_factor_enabled'] = user.two_factor_enabled
+        # Use the cached tokens instead of generating new ones
+        access_token = cached['access']
+        refresh_token = cached['refresh']
+        cache.delete(temp_token)
 
         # Log login
         try:
@@ -165,8 +227,8 @@ class TwoFactorLoginView(APIView):
             pass
 
         return Response({
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
+            'access': access_token,
+            'refresh': refresh_token,
             'requires_2fa': False,
             'user': {
                 'id': user.id,
@@ -728,8 +790,11 @@ class ResetPasswordView(APIView):
 
         user.set_password(new_password)
         user.must_change_password = False
+        # record_password_change must be called BEFORE set_password
+        # because set_password changes the password. However, since set_password
+        # already hashes the password, we just need to record the timestamp.
+        user.record_password_change()
         user.save()
-        user.record_password_change(new_password)
 
         # Clear the reset code from cache
         cache.delete(cache_key)
@@ -944,7 +1009,6 @@ class SeedPermissionsView(APIView):
         # Define default permissions
         default_perms = [
             ('dashboard', 'view'),
-            ('inventory', 'view'), ('inventory', 'create'), ('inventory', 'edit'), ('inventory', 'delete'), ('inventory', 'export'),
             ('sales', 'view'), ('sales', 'create'), ('sales', 'edit'), ('sales', 'delete'), ('sales', 'export'), ('sales', 'approve'),
             ('purchases', 'view'), ('purchases', 'create'), ('purchases', 'edit'), ('purchases', 'delete'), ('purchases', 'export'), ('purchases', 'approve'),
             ('accounting', 'view'), ('accounting', 'create'), ('accounting', 'edit'), ('accounting', 'delete'), ('accounting', 'export'), ('accounting', 'approve'),
@@ -970,6 +1034,20 @@ class SeedPermissionsView(APIView):
             ('payments', 'view'), ('payments', 'create'), ('payments', 'edit'), ('payments', 'delete'),
             # الفيديوهات التعليمية
             ('videos', 'view'), ('videos', 'create'), ('videos', 'delete'), ('videos', 'manage'),
+            # المناقصات
+            ('tenders', 'view'), ('tenders', 'create'), ('tenders', 'edit'), ('tenders', 'delete'), ('tenders', 'export'),
+            # الاستيراد والتصدير
+            ('importexport', 'view'), ('importexport', 'create'), ('importexport', 'edit'), ('importexport', 'delete'),
+            # صيانة المعدات
+            ('equipmaint', 'view'), ('equipmaint', 'create'), ('equipmaint', 'edit'), ('equipmaint', 'delete'),
+            # إدارة العلاقات
+            ('crm', 'view'), ('crm', 'create'), ('crm', 'edit'), ('crm', 'delete'), ('crm', 'export'),
+            # التحليلات الذكية
+            ('analytics', 'view'), ('analytics', 'create'), ('analytics', 'manage'),
+            # المساعد الذكي
+            ('chatbot', 'view'), ('chatbot', 'manage'),
+            # تمويل الشركات الناشئة
+            ('startup_finance', 'view'), ('startup_finance', 'create'), ('startup_finance', 'edit'), ('startup_finance', 'delete'), ('startup_finance', 'export'),
         ]
 
         for module, action in default_perms:

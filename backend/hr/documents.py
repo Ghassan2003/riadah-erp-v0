@@ -5,6 +5,8 @@ Manages employee documents and document templates.
 
 from django.db import models
 
+from core.validators import validate_file_type
+
 
 # =============================================
 # Employee Document (وثائق الموظف)
@@ -47,6 +49,7 @@ class EmployeeDocument(models.Model):
     file = models.FileField(
         upload_to='employee_documents/',
         verbose_name='الملف',
+        validators=[validate_file_type],
     )
     file_size = models.IntegerField(
         default=0,
@@ -142,6 +145,7 @@ class DocumentTemplate(models.Model):
     template_file = models.FileField(
         upload_to='document_templates/',
         verbose_name='ملف القالب',
+        validators=[validate_file_type],
     )
     description = models.TextField(
         blank=True,

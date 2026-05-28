@@ -31,9 +31,13 @@ class Command(BaseCommand):
 
         # Get all local apps
         local_apps = [
-            'users', 'inventory', 'sales', 'accounting',
+            'users', 'sales', 'accounting',
             'hr', 'purchases', 'documents', 'projects',
-            'notifications', 'auditlog',
+            'notifications', 'auditlog', 'maintenance',
+            'videos', 'payroll', 'invoicing', 'pos',
+            'payments', 'attachments', 'tenders',
+            'importexport', 'equipmaint', 'crm', 'analytics',
+            'chatbot', 'startup_finance',
         ]
 
         # Build fixture list

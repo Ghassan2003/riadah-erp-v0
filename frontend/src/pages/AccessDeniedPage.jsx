@@ -8,14 +8,13 @@ import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
 import {
   ShieldX, ArrowRight, Home, LayoutDashboard, UserCog, Package,
-  ShoppingCart, BookOpen, UserCog as UsersIcon, ClipboardList, Truck,
-  FolderKanban, Calculator, Store, Warehouse, Building2, Wrench
+  ShoppingCart, BookOpen, ClipboardList, Truck,
+  FolderKanban, Calculator, Store, Building2, Wrench
 } from 'lucide-react';
 
 // خريطة الأدوار مع الواجهة الرئيسية لكل دور
 export const ROLE_HOME_MAP = {
   admin: '/dashboard',
-  warehouse: '/warehouse-dashboard',
   sales: '/orders',
   accountant: '/accounts',
   hr: '/employees',
@@ -26,7 +25,6 @@ export const ROLE_HOME_MAP = {
 // أيقونة لكل دور
 const ROLE_ICONS = {
   admin: LayoutDashboard,
-  warehouse: Warehouse,
   sales: ShoppingCart,
   accountant: BookOpen,
   hr: UserCog,
@@ -37,7 +35,6 @@ const ROLE_ICONS = {
 // تسميات الأقسام لكل دور
 const ROLE_SECTIONS = {
   admin: 'إدارة النظام - جميع الأقسام متاحة',
-  warehouse: 'إدارة المخازن - المنتجات والمستودعات والتصنيع',
   sales: 'المبيعات - الطلبات والعملاء ونقاط البيع',
   accountant: 'المحاسبة - الحسابات والقيود والتقارير المالية',
   hr: 'الموارد البشرية - الموظفون والحضور والرواتب',

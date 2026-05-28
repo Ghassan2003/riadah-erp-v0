@@ -72,7 +72,7 @@ export default function TendersPage() {
   const badge = (s) => `px-2.5 py-1 rounded-full text-xs font-medium ${SC[s] || ''}`;
   const Th = ({ children }) => <th className="px-4 py-3 text-right font-medium">{children}</th>;
 
-  useEffect(() => { (async () => { try { setStats((await tendersAPI.getStats()).data); } catch {} })(); }, []);
+  useEffect(() => { (async () => { try { setStats((await tendersAPI.getStats()).data); } catch (error) { console.error('Error:', error); } })(); }, []);
 
   useEffect(() => {
     (async () => {

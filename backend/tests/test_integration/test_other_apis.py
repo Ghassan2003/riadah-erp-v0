@@ -127,52 +127,52 @@ class TestAuditLogEndpoints:
 
 
 class TestMaintenanceEndpoints:
-    """اختبارات نقاط نهاية الصيانة - تستخدم البادئة المزدوجة الصحيحة."""
+    """اختبارات نقاط نهاية الصيانة."""
 
     def test_system_settings_get(self, authenticated_client):
         """اختبار جلب إعدادات النظام."""
-        response = authenticated_client.get('/api/maintenance/maintenance/settings/')
+        response = authenticated_client.get('/api/maintenance/settings/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_error_log_list(self, authenticated_client):
         """اختبار قائمة سجلات الأخطاء."""
-        response = authenticated_client.get('/api/maintenance/maintenance/errors/')
+        response = authenticated_client.get('/api/maintenance/errors/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_error_log_stats(self, authenticated_client):
         """اختبار إحصائيات الأخطاء."""
-        response = authenticated_client.get('/api/maintenance/maintenance/errors/stats/')
+        response = authenticated_client.get('/api/maintenance/errors/stats/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_backup_list(self, authenticated_client):
         """اختبار قائمة النسخ الاحتياطية."""
-        response = authenticated_client.get('/api/maintenance/maintenance/backups/')
+        response = authenticated_client.get('/api/maintenance/backups/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_backup_stats(self, authenticated_client):
         """اختبار إحصائيات النسخ الاحتياطية."""
-        response = authenticated_client.get('/api/maintenance/maintenance/backups/stats/')
+        response = authenticated_client.get('/api/maintenance/backups/stats/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_cron_jobs_list(self, authenticated_client):
         """اختبار قائمة المهام المجدولة."""
-        response = authenticated_client.get('/api/maintenance/maintenance/cron-jobs/')
+        response = authenticated_client.get('/api/maintenance/cron-jobs/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_cron_jobs_stats(self, authenticated_client):
         """اختبار إحصائيات المهام المجدولة."""
-        response = authenticated_client.get('/api/maintenance/maintenance/cron-jobs/stats/')
+        response = authenticated_client.get('/api/maintenance/cron-jobs/stats/')
         assert response.status_code == status.HTTP_200_OK
 
     def test_maintenance_non_admin_denied(self, sales_client):
         """اختبار منع غير المدير من الوصول للصيانة."""
-        response = sales_client.get('/api/maintenance/maintenance/settings/')
+        response = sales_client.get('/api/maintenance/settings/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-        response = sales_client.get('/api/maintenance/maintenance/errors/')
+        response = sales_client.get('/api/maintenance/errors/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-        response = sales_client.get('/api/maintenance/maintenance/backups/')
+        response = sales_client.get('/api/maintenance/backups/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 

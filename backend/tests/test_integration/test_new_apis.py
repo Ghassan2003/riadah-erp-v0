@@ -12,6 +12,7 @@ from rest_framework import status
 # =============================================
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestWarehouseEndpoints:
     """اختبارات نقاط نهاية المستودعات."""
 
@@ -43,6 +44,7 @@ class TestWarehouseEndpoints:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestWarehouseStockEndpoints:
     """اختبارات نقاط نهاية أرصدة المخزون."""
 
@@ -52,6 +54,7 @@ class TestWarehouseStockEndpoints:
         assert response.status_code == status.HTTP_200_OK
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestStockTransferEndpoints:
     """اختبارات نقاط نهاية تحويلات المخزون."""
 
@@ -69,6 +72,7 @@ class TestStockTransferEndpoints:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestStockAdjustmentEndpoints:
     """اختبارات نقاط نهاية تسويات المخزون."""
 
@@ -78,6 +82,7 @@ class TestStockAdjustmentEndpoints:
         assert response.status_code == status.HTTP_200_OK
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestStockCountEndpoints:
     """اختبارات نقاط نهاية جرد المخزون."""
 
@@ -85,7 +90,6 @@ class TestStockCountEndpoints:
         """اختبار قائمة جرد المخزون."""
         response = authenticated_client.get('/api/warehouse/counts/')
         assert response.status_code == status.HTTP_200_OK
-
 
 
 # =============================================

@@ -157,7 +157,7 @@ export default function POSManagementPage() {
         if (tab === 'promos') setPromoCodes((await posAPI.promoCodes()).data.results || []);
         if (tab === 'loyalty') setLoyaltyPrograms((await posAPI.loyaltyPrograms()).data.results || []);
         if (tab === 'tables') setTables((await posAPI.tables()).data.results || []);
-      } catch {}
+      } catch (error) { console.error('Error:', error); }
       finally { setLd(false); }
     } catch (err) {
       toast.error(err.response?.data?.non_field_errors?.[0] || 'خطأ');
@@ -177,7 +177,7 @@ export default function POSManagementPage() {
         if (tab === 'promos') setPromoCodes((await posAPI.promoCodes()).data.results || []);
         if (tab === 'loyalty') setLoyaltyPrograms((await posAPI.loyaltyPrograms()).data.results || []);
         if (tab === 'tables') setTables((await posAPI.tables()).data.results || []);
-      } catch {}
+      } catch (error) { console.error('Error:', error); }
       finally { setLd(false); }
     } catch { toast.error('خطأ في الحذف'); }
   };

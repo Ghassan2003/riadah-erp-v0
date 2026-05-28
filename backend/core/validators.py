@@ -1,8 +1,9 @@
 """
-Custom password validators for ERP system.
-Enforces strong password policies.
+Custom validators for ERP system.
+Includes password validators and shared file upload validation.
 """
 
+import os
 import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -129,3 +130,29 @@ class SequentialCharsValidator:
 
     def get_help_text(self):
         return 'كلمة المرور لا يمكن أن تحتوي على أحرف متتالية أو متكررة.'
+
+
+# =============================================
+# File Upload Validators
+# =============================================
+
+ALLOWED_EXTENSIONS = [
+    '.pdf', '.doc', '.docx', '.xls', '.xlsx',
+    '.png', '.jpg', '.jpeg', '.gif', '.svg',
+    '.csv', '.txt', '.zip', '.rar',
+]
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+
+
+def validate_file_type(file_obj):
+    """Validate uploaded file extension and size."""
+    ext = os.path.splitext(file_obj.name)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValidationError(
+            f'نوع الملف غير مسموح: {ext}. الأنواع المسموحة: {", ".join(ALLOWED_EXTENSIONS)}'
+        )
+    if file_obj.size > MAX_FILE_SIZE:
+        raise ValidationError(
+            f'حجم الملف يتجاوز الحد المسموح ({MAX_FILE_SIZE // (1024*1024)}MB)'
+        )
+    return file_obj

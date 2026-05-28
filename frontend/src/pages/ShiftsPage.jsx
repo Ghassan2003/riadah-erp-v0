@@ -128,7 +128,7 @@ export default function ShiftsPage() {
     try {
       const res = await employeesAPI.list({ page_size: 500 });
       setEmployees(res.data.results || res.data || []);
-    } catch {}
+    } catch (error) { console.error('Error:', error); }
   };
 
   // ── Effects ──────────────────────────────────────────────────────────────

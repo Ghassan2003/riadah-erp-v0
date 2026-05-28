@@ -55,7 +55,16 @@ class JobRequisitionSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = JobRequisition
-        fields = '__all__'
+        fields = (
+            'id', 'requisition_number', 'department', 'position', 'job_description',
+            'required_count', 'filled_count', 'priority', 'employment_type',
+            'min_salary', 'max_salary', 'required_qualifications',
+            'required_experience', 'skills_required', 'status', 'requested_by',
+            'approved_by', 'approved_at', 'deadline', 'notes', 'created_at',
+            'updated_at', 'department_name', 'status_display', 'priority_display',
+            'employment_type_display', 'requested_by_name', 'approved_by_name',
+            'remaining_count',
+        )
         read_only_fields = ('requisition_number', 'created_at', 'updated_at')
 
 
@@ -69,7 +78,14 @@ class JobPostingSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = JobPosting
-        fields = '__all__'
+        fields = (
+            'id', 'posting_number', 'requisition', 'title', 'description',
+            'requirements', 'benefits', 'location', 'employment_type',
+            'salary_range', 'is_internal', 'is_external', 'posted_on', 'status',
+            'published_at', 'closes_at', 'applications_count', 'created_by',
+            'created_at', 'updated_at', 'status_display', 'employment_type_display',
+            'requisition_title', 'created_by_name', 'is_active',
+        )
         read_only_fields = ('posting_number', 'applications_count', 'created_at', 'updated_at')
 
 
@@ -84,7 +100,16 @@ class JobApplicationSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = JobApplication
-        fields = '__all__'
+        fields = (
+            'id', 'application_number', 'posting', 'requisition', 'first_name',
+            'last_name', 'email', 'phone', 'national_id', 'date_of_birth',
+            'gender', 'education', 'experience_years', 'current_company',
+            'current_position', 'expected_salary', 'cv_file', 'cover_letter',
+            'linkedin_profile', 'source', 'status', 'rating', 'assigned_to',
+            'notes', 'rejection_reason', 'created_at', 'updated_at',
+            'status_display', 'source_display', 'full_name', 'posting_title',
+            'assigned_to_name', 'interviews_count',
+        )
         read_only_fields = ('application_number', 'created_at', 'updated_at')
 
 
@@ -98,7 +123,15 @@ class InterviewSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Interview
-        fields = '__all__'
+        fields = (
+            'id', 'application', 'interview_type', 'interviewer',
+            'scheduled_date', 'duration_minutes', 'location', 'status',
+            'technical_score', 'behavioral_score', 'communication_score',
+            'overall_score', 'strengths', 'weaknesses', 'recommendation',
+            'notes', 'created_at', 'updated_at', 'status_display',
+            'interview_type_display', 'recommendation_display',
+            'candidate_name', 'interviewer_name',
+        )
         read_only_fields = ('overall_score', 'created_at', 'updated_at')
 
 
@@ -112,7 +145,15 @@ class JobOfferSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = JobOffer
-        fields = '__all__'
+        fields = (
+            'id', 'offer_number', 'application', 'requisition', 'position',
+            'department', 'proposed_salary', 'housing_allowance',
+            'transport_allowance', 'other_allowances', 'employment_type',
+            'start_date', 'contract_duration', 'probation_months', 'status',
+            'sent_at', 'responded_at', 'notes', 'created_by', 'created_at',
+            'updated_at', 'status_display', 'candidate_name', 'department_name',
+            'total_compensation', 'created_by_name',
+        )
         read_only_fields = ('offer_number', 'created_at', 'updated_at')
 
 
@@ -131,7 +172,12 @@ class EducationSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Education
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'institution', 'degree', 'major', 'gpa',
+            'graduation_date', 'country', 'certificate_file', 'verified',
+            'notes', 'created_at', 'degree_display', 'employee_name',
+            'employee_number',
+        )
         read_only_fields = ('created_at',)
 
 
@@ -143,7 +189,12 @@ class ExperienceSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Experience
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'company_name', 'position', 'department',
+            'start_date', 'end_date', 'is_current', 'responsibilities',
+            'achievements', 'country', 'created_at', 'employee_name',
+            'employee_number', 'duration_months',
+        )
         read_only_fields = ('is_current', 'created_at')
 
 
@@ -156,7 +207,12 @@ class SkillSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Skill
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'skill_name', 'skill_type', 'proficiency_level',
+            'years_of_experience', 'certificate_name', 'certificate_file',
+            'verified', 'created_at', 'skill_type_display',
+            'proficiency_level_display', 'employee_name', 'employee_number',
+        )
         read_only_fields = ('created_at',)
 
 
@@ -171,7 +227,12 @@ class LanguageSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Language
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'language', 'proficiency', 'reading', 'writing',
+            'speaking', 'certificate_name', 'certificate_file', 'created_at',
+            'proficiency_display', 'reading_display', 'writing_display',
+            'speaking_display', 'employee_name', 'employee_number',
+        )
         read_only_fields = ('created_at',)
 
 
@@ -182,7 +243,12 @@ class CertificationSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Certification
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'name', 'issuing_organization',
+            'certificate_number', 'issue_date', 'expiry_date', 'is_expired',
+            'credential_url', 'certificate_file', 'notes', 'created_at',
+            'employee_name', 'employee_number',
+        )
         read_only_fields = ('is_expired', 'created_at')
 
 
@@ -198,7 +264,13 @@ class EmployeeDocumentSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeDocument
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'document_type', 'title', 'description', 'file',
+            'file_size', 'uploaded_by', 'expires_at', 'is_verified',
+            'verified_by', 'verified_at', 'created_at', 'document_type_display',
+            'employee_name', 'employee_number', 'uploaded_by_name',
+            'verified_by_name',
+        )
         read_only_fields = ('file_size', 'created_at')
 
 
@@ -208,7 +280,10 @@ class DocumentTemplateSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = DocumentTemplate
-        fields = '__all__'
+        fields = (
+            'id', 'name', 'name_en', 'document_type', 'template_file',
+            'description', 'is_active', 'created_at', 'document_type_display',
+        )
         read_only_fields = ('created_at',)
 
 
@@ -224,7 +299,12 @@ class TrainingNeedSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = TrainingNeed
-        fields = '__all__'
+        fields = (
+            'id', 'department', 'employee', 'skill_gap', 'priority',
+            'suggested_training', 'target_date', 'status', 'identified_by',
+            'created_at', 'updated_at', 'status_display', 'priority_display',
+            'department_name', 'employee_name', 'identified_by_name',
+        )
         read_only_fields = ('created_at', 'updated_at')
 
 
@@ -235,7 +315,13 @@ class CourseSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = '__all__'
+        fields = (
+            'id', 'code', 'name', 'name_en', 'description', 'provider',
+            'training_type', 'category', 'duration_hours', 'max_participants',
+            'cost_per_participant', 'total_budget', 'certificate_offered',
+            'is_active', 'created_at', 'updated_at', 'training_type_display',
+            'category_display',
+        )
         read_only_fields = ('created_at', 'updated_at')
 
 
@@ -248,7 +334,12 @@ class TrainingSessionSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = TrainingSession
-        fields = '__all__'
+        fields = (
+            'id', 'course', 'session_number', 'start_date', 'end_date',
+            'location', 'instructor', 'status', 'actual_cost', 'notes',
+            'created_at', 'updated_at', 'status_display', 'course_name',
+            'course_code', 'enrolled_count',
+        )
         read_only_fields = ('created_at', 'updated_at')
 
 
@@ -261,7 +352,13 @@ class TrainingEnrollmentSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = TrainingEnrollment
-        fields = '__all__'
+        fields = (
+            'id', 'session', 'employee', 'enrollment_date', 'status',
+            'completion_date', 'score', 'passed', 'certificate_issued',
+            'certificate_file', 'feedback', 'feedback_notes', 'cost',
+            'created_at', 'updated_at', 'status_display', 'employee_name',
+            'employee_number', 'session_info',
+        )
         read_only_fields = ('passed', 'created_at', 'updated_at')
 
 
@@ -274,7 +371,12 @@ class TrainingBudgetSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = TrainingBudget
-        fields = '__all__'
+        fields = (
+            'id', 'year', 'department', 'total_budget', 'utilized_amount',
+            'approved_by', 'approved_at', 'notes', 'created_at', 'updated_at',
+            'department_name', 'remaining_amount', 'utilization_percentage',
+            'approved_by_name',
+        )
         read_only_fields = ('created_at', 'updated_at')
 
 
@@ -297,7 +399,17 @@ class LoanSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Loan
-        fields = '__all__'
+        fields = (
+            'id', 'loan_number', 'employee', 'loan_type', 'amount',
+            'interest_rate', 'repayment_period_months', 'monthly_installment',
+            'total_remaining', 'start_date', 'end_date', 'status', 'purpose',
+            'approved_by', 'approved_at', 'guarantor', 'guarantor_employee',
+            'notes', 'created_at', 'updated_at', 'status_display',
+            'loan_type_display', 'employee_name', 'employee_number',
+            'approved_by_name', 'guarantor_employee_name', 'total_paid',
+            'progress_percentage', 'installments_paid_count',
+            'installments_overdue_count',
+        )
         read_only_fields = (
             'loan_number', 'monthly_installment', 'total_remaining',
             'created_at', 'updated_at',
@@ -323,7 +435,11 @@ class LoanPaymentSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = LoanPayment
-        fields = '__all__'
+        fields = (
+            'id', 'loan', 'payment_number', 'due_date', 'amount',
+            'paid_amount', 'payment_date', 'status', 'payslip', 'notes',
+            'created_at', 'status_display', 'remaining_amount', 'loan_number',
+        )
         read_only_fields = ('status', 'created_at')
 
 
@@ -338,7 +454,14 @@ class SalaryAdvanceSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = SalaryAdvance
-        fields = '__all__'
+        fields = (
+            'id', 'advance_number', 'employee', 'amount', 'reason',
+            'repayment_months', 'monthly_deduction', 'total_deducted',
+            'total_remaining', 'request_date', 'status', 'approved_by',
+            'approved_at', 'notes', 'created_at', 'updated_at',
+            'status_display', 'employee_name', 'employee_number',
+            'approved_by_name', 'progress_percentage', 'months_remaining',
+        )
         read_only_fields = (
             'advance_number', 'monthly_deduction', 'total_deducted',
             'total_remaining', 'created_at', 'updated_at',
@@ -364,7 +487,15 @@ class OvertimeRequestSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = OvertimeRequest
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'date', 'start_time', 'end_time', 'hours',
+            'overtime_type', 'rate_multiplier', 'hourly_rate', 'total_amount',
+            'reason', 'status', 'approved_by', 'approved_at',
+            'paid_in_payslip', 'payslip', 'notes', 'created_at', 'updated_at',
+            'status_display', 'overtime_type_display', 'employee_name',
+            'employee_number', 'approved_by_name', 'duration_display',
+            'rate_display',
+        )
         read_only_fields = (
             'hours', 'rate_multiplier', 'hourly_rate', 'total_amount',
             'created_at', 'updated_at',
@@ -392,7 +523,13 @@ class HealthInsuranceSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = HealthInsurance
-        fields = '__all__'
+        fields = (
+            'id', 'insurance_provider', 'plan_name', 'plan_type',
+            'monthly_premium_employee', 'monthly_premium_company',
+            'coverage_amount', 'network_type', 'is_active', 'created_at',
+            'updated_at', 'plan_type_display', 'network_type_display',
+            'total_monthly_premium', 'total_annual_premium', 'enrolled_count',
+        )
         read_only_fields = ('created_at', 'updated_at')
 
     def get_enrolled_count(self, obj):
@@ -409,7 +546,12 @@ class EmployeeInsuranceSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeInsurance
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'insurance', 'policy_number', 'member_id',
+            'start_date', 'end_date', 'status', 'dependents_count', 'notes',
+            'created_at', 'status_display', 'employee_name', 'employee_number',
+            'plan_name', 'provider_name',
+        )
         read_only_fields = ('created_at',)
 
 
@@ -423,7 +565,15 @@ class DisciplinaryActionSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = DisciplinaryAction
-        fields = '__all__'
+        fields = (
+            'id', 'action_number', 'employee', 'action_type', 'severity_level',
+            'reason', 'incident_date', 'incident_description', 'witnesses',
+            'issued_by', 'acknowledged_by_employee', 'acknowledged_at',
+            'effective_date', 'end_date', 'is_active', 'related_docs',
+            'created_at', 'updated_at', 'action_type_display',
+            'severity_level_display', 'employee_name', 'employee_number',
+            'issued_by_name',
+        )
         read_only_fields = ('action_number', 'created_at', 'updated_at')
 
 
@@ -439,7 +589,15 @@ class GrievanceSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Grievance
-        fields = '__all__'
+        fields = (
+            'id', 'grievance_number', 'employee', 'grievance_type', 'priority',
+            'description', 'resolution_requested', 'status', 'assigned_to',
+            'resolution', 'resolution_date', 'resolved_by', 'attachments',
+            'is_confidential', 'created_at', 'updated_at',
+            'grievance_type_display', 'priority_display', 'status_display',
+            'employee_name', 'employee_number', 'assigned_to_name',
+            'resolved_by_name',
+        )
         read_only_fields = ('grievance_number', 'created_at', 'updated_at')
 
 
@@ -456,7 +614,18 @@ class OffboardingSerializer(drf_serializers.ModelSerializer):
 
     class Meta:
         model = Offboarding
-        fields = '__all__'
+        fields = (
+            'id', 'employee', 'offboarding_type', 'last_working_day', 'reason',
+            'exit_interview_conducted', 'exit_interview_notes',
+            'exit_interview_date', 'clearance_status',
+            'final_settlement_amount', 'end_of_service_benefit',
+            'outstanding_loans', 'outstanding_advances', 'checklist',
+            'knowledge_transfer_done', 'approved_by', 'approved_at',
+            'status', 'notes', 'created_at', 'updated_at',
+            'offboarding_type_display', 'status_display',
+            'clearance_status_display', 'employee_name', 'employee_number',
+            'approved_by_name', 'net_settlement', 'total_deductions',
+        )
         read_only_fields = ('created_at', 'updated_at')
 
 

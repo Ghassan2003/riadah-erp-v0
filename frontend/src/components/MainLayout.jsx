@@ -53,7 +53,7 @@ export default function MainLayout() {
         setUnreadCount(countRes.data.count || countRes.data.unread_count || 0);
         const notifData = listRes.data.results || (Array.isArray(listRes.data) ? listRes.data : []);
         setNotifications(notifData.slice(0, 8));
-      } catch { /* silent */ }
+      } catch (error) { console.error('Error:', error); }
     };
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 60000);
@@ -407,7 +407,7 @@ export default function MainLayout() {
                             await notificationsAPI.markAllRead();
                             setUnreadCount(0);
                             setNotifications(notifications.map(n => ({ ...n, is_read: true })));
-                          } catch { /* silent */ }
+                          } catch (error) { console.error('Error:', error); }
                         }}
                         className="text-xs text-accent-500 hover:text-accent-600 font-medium flex items-center gap-1"
                       >
@@ -426,7 +426,7 @@ export default function MainLayout() {
                               await notificationsAPI.markRead(notif.id);
                               setUnreadCount(prev => Math.max(0, prev - 1));
                               setNotifications(notifications.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
-                            } catch { /* silent */ }
+                            } catch (error) { console.error('Error:', error); }
                           }
                         }}
                       >

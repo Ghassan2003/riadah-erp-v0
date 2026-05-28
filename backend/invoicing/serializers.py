@@ -10,7 +10,11 @@ from .models import Invoice, InvoiceItem, Payment, PaymentReminder
 class InvoiceItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceItem
-        fields = '__all__'
+        fields = [
+            'id', 'invoice', 'product_name', 'description', 'quantity',
+            'unit_price', 'unit', 'discount_type', 'discount_value',
+            'vat_rate', 'subtotal', 'vat_amount', 'total',
+        ]
         read_only_fields = ('subtotal', 'vat_amount', 'total')
 
 
@@ -170,7 +174,20 @@ class InvoiceDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Invoice
-        fields = '__all__'
+        fields = [
+            'id', 'invoice_number', 'invoice_type', 'sales_order',
+            'customer', 'customer_name', 'customer_email', 'customer_phone', 'customer_address',
+            'supplier', 'supplier_name', 'supplier_phone',
+            'issue_date', 'due_date', 'subtotal',
+            'discount_type', 'discount_value', 'discount_amount',
+            'vat_rate', 'vat_amount', 'total_after_discount', 'total_amount',
+            'currency', 'payment_status', 'paid_amount', 'remaining_amount',
+            'status', 'tax_number', 'company_tax_number',
+            'notes', 'terms_conditions',
+            'created_by', 'created_by_name',
+            'is_active', 'created_at', 'updated_at',
+            'items',
+        ]
 
     def get_created_by_name(self, obj):
         if obj.created_by:

@@ -119,9 +119,6 @@ export default function LandingPage() {
     { icon: <Users className="w-7 h-7" />, iconColor: 'bg-pink-500/20 text-pink-400', title: t('landing.s5Title'), desc: t('landing.s5Desc') },
     { icon: <Building2 className="w-7 h-7" />, iconColor: 'bg-cyan-500/20 text-cyan-400', title: t('landing.s6Title'), desc: t('landing.s6Desc') },
     { icon: <HeartHandshake className="w-7 h-7" />, iconColor: 'bg-orange-500/20 text-orange-400', title: t('landing.s7Title'), desc: t('landing.s7Desc') },
-    { icon: <ClipboardList className="w-7 h-7" />, iconColor: 'bg-teal-500/20 text-teal-400', title: t('landing.s8Title'), desc: t('landing.s8Desc') },
-    { icon: <ShieldCheck className="w-7 h-7" />, iconColor: 'bg-indigo-500/20 text-indigo-400', title: t('landing.s9Title'), desc: t('landing.s9Desc') },
-    { icon: <Calculator className="w-7 h-7" />, iconColor: 'bg-rose-500/20 text-rose-400', title: t('landing.s10Title'), desc: t('landing.s10Desc') },
     { icon: <Store className="w-7 h-7" />, iconColor: 'bg-sky-500/20 text-sky-400', title: t('landing.s11Title'), desc: t('landing.s11Desc') },
     { icon: <TrendingUp className="w-7 h-7" />, iconColor: 'bg-lime-500/20 text-lime-400', title: t('landing.s12Title'), desc: t('landing.s12Desc'), badge: t('landing.new') },
   ];

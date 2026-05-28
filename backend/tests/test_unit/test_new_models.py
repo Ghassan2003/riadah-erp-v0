@@ -13,9 +13,11 @@ from datetime import date
 # =============================================
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestWarehouseModel:
     """اختبارات نموذج المستودع."""
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_create_warehouse(self, db):
         """اختبار إنشاء مستودع جديد."""
         from warehouse.models import Warehouse
@@ -30,6 +32,7 @@ class TestWarehouseModel:
         assert warehouse.is_active is True
         assert warehouse.capacity == Decimal('10000.00')
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_warehouse_code_auto_generated(self, db):
         """اختبار التوليد التلقائي لرمز المستودع."""
         from warehouse.models import Warehouse
@@ -39,6 +42,7 @@ class TestWarehouseModel:
         assert wh2.code.startswith('WH-')
         assert wh1.code != wh2.code
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_warehouse_str(self, db):
         """اختبار التمثيل النصي للمستودع."""
         from warehouse.models import Warehouse
@@ -46,6 +50,7 @@ class TestWarehouseModel:
         assert warehouse.code in str(warehouse)
         assert 'مستودع جدة' in str(warehouse)
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_warehouse_default_values(self, db):
         """اختبار القيم الافتراضية للمستودع."""
         from warehouse.models import Warehouse
@@ -55,6 +60,7 @@ class TestWarehouseModel:
         assert warehouse.capacity == Decimal('0')
         assert warehouse.is_active is True
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_warehouse_ordering(self, db):
         """اختبار ترتيب المستودعات حسب الاسم."""
         from warehouse.models import Warehouse
@@ -64,6 +70,7 @@ class TestWarehouseModel:
         assert warehouses[0].name == 'مستودع أ'
         assert warehouses[1].name == 'مستودع ب'
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_warehouse_unique_code(self, db):
         """اختبار تفرد رمز المستودع."""
         from warehouse.models import Warehouse
@@ -138,9 +145,11 @@ class TestWarehouseStockModel:
             )
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestStockTransferModel:
     """اختبارات نموذج تحويل المخزون."""
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_create_stock_transfer(self, db):
         """اختبار إنشاء تحويل مخزون."""
         from warehouse.models import Warehouse, StockTransfer
@@ -153,6 +162,7 @@ class TestStockTransferModel:
         assert transfer.status == 'draft'
         assert transfer.transfer_number.startswith('TRF-')
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_stock_transfer_number_auto_generated(self, db):
         """اختبار التوليد التلقائي لرقم التحويل."""
         from warehouse.models import Warehouse, StockTransfer
@@ -163,6 +173,7 @@ class TestStockTransferModel:
         assert tr1.transfer_number.startswith('TRF-')
         assert tr1.transfer_number != tr2.transfer_number
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_stock_transfer_str(self, db):
         """اختبار التمثيل النصي لتحويل المخزون."""
         from warehouse.models import Warehouse, StockTransfer
@@ -171,6 +182,7 @@ class TestStockTransferModel:
         transfer = StockTransfer.objects.create(from_warehouse=wh_from, to_warehouse=wh_to)
         assert '→' in str(transfer)
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_stock_transfer_status_choices(self, db):
         """اختبار خيارات حالة التحويل."""
         from warehouse.models import StockTransfer
@@ -179,9 +191,11 @@ class TestStockTransferModel:
             assert st in dict(StockTransfer.STATUS_CHOICES)
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestStockAdjustmentModel:
     """اختبارات نموذج تسوية المخزون."""
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_create_stock_adjustment(self, db, product, admin_user):
         """اختبار إنشاء تسوية مخزون."""
         from warehouse.models import Warehouse, StockAdjustment
@@ -198,6 +212,7 @@ class TestStockAdjustmentModel:
         assert adj.adjustment_number.startswith('ADJ-')
         assert adj.difference == Decimal('-10.00')
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_stock_adjustment_difference(self, db, product):
         """اختبار حساب فرق التسوية."""
         from warehouse.models import Warehouse, StockAdjustment
@@ -221,6 +236,7 @@ class TestStockAdjustmentModel:
         )
         assert adj_down.difference == Decimal('-20.00')
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_stock_adjustment_str(self, db, product):
         """اختبار التمثيل النصي لتسوية المخزون."""
         from warehouse.models import Warehouse, StockAdjustment
@@ -236,9 +252,11 @@ class TestStockAdjustmentModel:
         assert adj.reason in str(adj)
 
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestStockCountModel:
     """اختبارات نموذج جرد المخزون."""
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_create_stock_count(self, db, admin_user):
         """اختبار إنشاء جرد مخزون."""
         from warehouse.models import Warehouse, StockCount
@@ -250,6 +268,7 @@ class TestStockCountModel:
         assert count.status == 'draft'
         assert count.count_number.startswith('CNT-')
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_stock_count_str(self, db):
         """اختبار التمثيل النصي لجرد المخزون."""
         from warehouse.models import Warehouse, StockCount

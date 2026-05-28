@@ -1,4 +1,7 @@
 from django.urls import path
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from .enhanced_views import (
     JobRequisitionListView, JobRequisitionDetailView,
     JobPostingListView, JobPostingDetailView,
@@ -8,7 +11,23 @@ from .enhanced_views import (
     HireCandidateView,
 )
 
+
+class RecruitmentOverviewView(APIView):
+    """Returns available recruitment sub-endpoints."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            'module': 'recruitment',
+            'endpoints': [
+                'requisitions/', 'postings/', 'applications/',
+                'interviews/', 'offers/', 'hire/',
+            ]
+        })
+
+
 urlpatterns = [
+    path('', RecruitmentOverviewView.as_view(), name='recruitment-overview'),
     path('requisitions/', JobRequisitionListView.as_view(), name='requisition-list'),
     path('requisitions/<int:pk>/', JobRequisitionDetailView.as_view(), name='requisition-detail'),
     path('postings/', JobPostingListView.as_view(), name='posting-list'),

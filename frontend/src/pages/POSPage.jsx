@@ -79,7 +79,7 @@ export default function POSPage() {
       const r = await posAPI.getStats();
       setStats(r.data);
       if (r.data.active_shift) setShift(r.data.active_shift);
-    } catch { /* */ }
+    } catch (error) { console.error('Error:', error); }
   }, []);
 
   const fetchProducts = useCallback(async () => {

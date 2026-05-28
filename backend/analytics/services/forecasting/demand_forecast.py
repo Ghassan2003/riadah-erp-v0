@@ -13,7 +13,7 @@ from analytics.services.forecasting.base import (
 logger = logging.getLogger(__name__)
 
 
-def _forecast_product(demand_series, product_name, weeks_ahead=12):
+def _forecast_product(demand_series, weeks_ahead=12):
     """Forecast demand for a single product. Returns forecast DataFrame or None."""
     if len(demand_series) < 4:
         return None
@@ -32,10 +32,11 @@ def _forecast_product(demand_series, product_name, weeks_ahead=12):
             avg = demand_series.mean()
             std = demand_series.std()
             fitted = None
-    except Exception:
+    except (ValueError, NotImplementedError) as e:
         avg = demand_series.mean()
         std = demand_series.std()
         fitted = None
+        logger.debug("ExponentialSmoothing failed for product, using moving average: %s", e)
 
     future_dates = pd.date_range(
         start=demand_series.index[-1] + pd.DateOffset(weeks=1),
@@ -46,9 +47,11 @@ def _forecast_product(demand_series, product_name, weeks_ahead=12):
     if fitted:
         forecast = fitted.forecast(steps=weeks_ahead)
         std_err = (demand_series - fitted.fittedvalues).std()
+        if pd.isna(std_err):
+            std_err = 0
     else:
         forecast = pd.Series([avg] * weeks_ahead, index=future_dates)
-        std_err = std if std else avg * 0.2
+        std_err = std if not pd.isna(std) else (avg * 0.2 if avg else 0)
 
     return pd.DataFrame({
         'ds': future_dates,
@@ -61,7 +64,7 @@ def _forecast_product(demand_series, product_name, weeks_ahead=12):
 def run_demand_forecast(top_n=20, weeks_ahead=12):
     """Run demand forecasting for top products."""
     start_time = time.time()
-    logger.info(f"Starting demand forecast for top {top_n} products...")
+    logger.info("Starting demand forecast for top %d products...", top_n)
 
     df = get_product_demand(top_n=top_n)
 
@@ -77,7 +80,7 @@ def run_demand_forecast(top_n=20, weeks_ahead=12):
         product_name = product_df['product_name'].iloc[0]
 
         demand_series = product_df.set_index('week')['quantity']
-        forecast_df = _forecast_product(demand_series, product_name, weeks_ahead)
+        forecast_df = _forecast_product(demand_series, weeks_ahead)
 
         if forecast_df is not None:
             save_forecast_results(
@@ -87,7 +90,7 @@ def run_demand_forecast(top_n=20, weeks_ahead=12):
             total_predictions += len(forecast_df)
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Demand forecast complete: {total_predictions} predictions for top {top_n} products, {duration_ms}ms")
+    logger.info("Demand forecast complete: %d predictions for top %d products, %dms", total_predictions, top_n, duration_ms)
 
     return {
         'status': 'success',

@@ -105,7 +105,7 @@ class SmartQueryEngine:
             cursor.execute("""
                 SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total
                 FROM sales_salesorder
-                WHERE TO_CHAR(created_at, 'YYYY-MM') = TO_CHAR(CURRENT_DATE, 'YYYY-MM')
+                WHERE strftime('%%Y-%%m', created_at) = strftime('%%Y-%%m', CURRENT_DATE)
             """)
             row = cursor.fetchone()
             count, total = (row[0], float(row[1])) if row else (0, 0)
@@ -212,9 +212,9 @@ class SmartQueryEngine:
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT
-                    COUNT(*) FILTER (WHERE approval_status = 'pending') as pending,
-                    COUNT(*) FILTER (WHERE approval_status = 'approved') as approved,
-                    COUNT(*) FILTER (WHERE approval_status = 'rejected') as rejected
+                    COUNT(CASE WHEN approval_status = 'pending' THEN 1 END) as pending,
+                    COUNT(CASE WHEN approval_status = 'approved' THEN 1 END) as approved,
+                    COUNT(CASE WHEN approval_status = 'rejected' THEN 1 END) as rejected
                 FROM hr_leaverequest
             """)
             row = cursor.fetchone()
@@ -235,9 +235,9 @@ class SmartQueryEngine:
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT
-                    COUNT(*) FILTER (WHERE status = 'present') as present,
-                    COUNT(*) FILTER (WHERE status = 'absent') as absent,
-                    COUNT(*) FILTER (WHERE status = 'late') as late
+                    COUNT(CASE WHEN status = 'present' THEN 1 END) as present,
+                    COUNT(CASE WHEN status = 'absent' THEN 1 END) as absent,
+                    COUNT(CASE WHEN status = 'late' THEN 1 END) as late
                 FROM hr_attendance
                 WHERE DATE(date) = CURRENT_DATE
             """)
@@ -367,7 +367,7 @@ class SmartQueryEngine:
             cursor.execute("""
                 SELECT COALESCE(SUM(total_amount), 0)
                 FROM sales_salesorder
-                WHERE TO_CHAR(created_at, 'YYYY-MM') = TO_CHAR(CURRENT_DATE, 'YYYY-MM')
+                WHERE strftime('%%Y-%%m', created_at) = strftime('%%Y-%%m', CURRENT_DATE)
             """)
             row = cursor.fetchone()
             revenue = float(row[0]) if row else 0
@@ -602,8 +602,8 @@ class SmartQueryEngine:
             cursor.execute("""
                 SELECT
                     COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE is_active = true) as active,
-                    COALESCE(SUM(estimated_value), 0) as total_value
+                    COUNT(CASE WHEN status = 'active' OR status = 'new' THEN 1 ELSE 0 END) as active,
+                    COALESCE(SUM(value), 0) as total_value
                 FROM crm_lead
             """)
             row = cursor.fetchone()
@@ -623,7 +623,7 @@ class SmartQueryEngine:
     def _query_crm_summary(self):
         """Get general CRM summary."""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM crm_lead WHERE is_active = true")
+            cursor.execute("SELECT COUNT(*) FROM crm_lead WHERE status IN ('new', 'active', 'qualified', 'proposal')")
             row = cursor.fetchone()
             leads = row[0] if row else 0
 
@@ -653,9 +653,9 @@ class SmartQueryEngine:
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT
-                    COUNT(*) FILTER (WHERE status = 'active') as active,
-                    COUNT(*) FILTER (WHERE status = 'completed') as completed,
-                    COUNT(*) FILTER (WHERE status = 'on_hold') as on_hold
+                    COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
+                    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+                    COUNT(CASE WHEN status = 'on_hold' THEN 1 END) as on_hold
                 FROM projects_project
             """)
             row = cursor.fetchone()
@@ -678,7 +678,7 @@ class SmartQueryEngine:
                 SELECT
                     COALESCE(severity, 'medium') as severity,
                     COUNT(*) as count
-                FROM projects_risk
+                FROM projects_projectrisk
                 GROUP BY severity
                 ORDER BY count DESC
             """)
@@ -687,10 +687,10 @@ class SmartQueryEngine:
         if not rows:
             return 'لا تتوفر بيانات عن مخاطر المشاريع حالياً.'
 
-        severity_labels = {'low': 'منخفض', 'medium': 'متوسط', 'high': 'عالي', 'critical': 'حرج'}
+        severity_labels = {'low': 'منخفض', 'medium': 'متوسط', 'high': 'مرتفع', 'critical': 'حرج'}
         lines = ['⚠️ **مخاطر المشاريع:**']
-        for severity, count in rows:
-            label = severity_labels.get(severity, severity)
+        for severity_val, count in rows:
+            label = severity_labels.get(severity_val, severity_val)
             lines.append(f'• {label}: {count} خطر')
 
         return '\n'.join(lines)
@@ -754,7 +754,7 @@ class SmartQueryEngine:
                 SELECT
                     COUNT(*) as count,
                     COALESCE(SUM(total_amount), 0) as total
-                FROM pos_sale
+                FROM pos_possale
                 WHERE DATE(created_at) = CURRENT_DATE
             """)
             row = cursor.fetchone()
@@ -796,7 +796,7 @@ class SmartQueryEngine:
                 SELECT
                     COUNT(*) as count,
                     COALESCE(SUM(total_amount), 0) as total
-                FROM pos_sale
+                FROM pos_possale
             """)
             row = cursor.fetchone()
             count, total = (row[0], float(row[1])) if row else (0, 0)
@@ -824,11 +824,10 @@ class SmartQueryEngine:
             cursor.execute("""
                 SELECT
                     COUNT(*) as employees,
-                    COALESCE(SUM(net_pay), 0) as total_net,
-                    COALESCE(SUM(gross_pay), 0) as total_gross,
-                    COALESCE(SUM(total_deductions), 0) as total_deductions
-                FROM payroll_payslip
-                WHERE TO_CHAR(pay_period_start, 'YYYY-MM') = TO_CHAR(CURRENT_DATE, 'YYYY-MM')
+                    COALESCE(SUM(net_salary), 0) as total_net,
+                    COALESCE(SUM(total_earnings), 0) as total_gross,
+                    COALESCE(SUM(total_deductions_amount), 0) as total_deductions
+                FROM payroll_payrollrecord
             """)
             row = cursor.fetchone()
             if row:
@@ -854,8 +853,8 @@ class SmartQueryEngine:
             cursor.execute("""
                 SELECT
                     COUNT(DISTINCT employee_id) as employees,
-                    COALESCE(SUM(net_pay), 0) as total_net
-                FROM payroll_payslip
+                    COALESCE(SUM(net_salary), 0) as total_net
+                FROM payroll_payrollrecord
             """)
             row = cursor.fetchone()
             if row:

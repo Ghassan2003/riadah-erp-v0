@@ -111,7 +111,7 @@ def run_expense_anomaly(contamination=0.05, z_threshold=3.0):
                     anomaly_records_created += 1
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Expense anomaly detection complete: {anomaly_records_created} anomalies found, {duration_ms}ms")
+    logger.info("Expense anomaly detection complete: %d anomalies found, %dms", anomaly_records_created, duration_ms)
 
     return {
         'status': 'success',

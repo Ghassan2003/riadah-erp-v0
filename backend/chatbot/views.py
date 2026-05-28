@@ -143,7 +143,7 @@ class ChatMessageView(APIView):
                 message=message_text,
                 conversation_id=conversation_id,
             )
-        except Exception as exc:
+        except (ValueError, RuntimeError, ImportError, ConnectionError) as exc:
             logger.error(
                 'Chat processing error for user %s: %s',
                 request.user.username,

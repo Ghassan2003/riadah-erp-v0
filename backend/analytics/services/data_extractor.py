@@ -76,10 +76,9 @@ def get_monthly_sales(years=None):
     return df
 
 
-def get_product_demand(product_id=None, top_n=20):
+def get_product_demand(top_n=20):
     """Get weekly demand per product.
-    Returns DataFrame with columns: week, product_name, quantity
-    Note: product_id filter is no longer supported (inventory module removed).
+    Returns DataFrame with columns: week, product_name, product_id, quantity
     """
     from sales.models import SalesOrderItem
 
@@ -87,12 +86,12 @@ def get_product_demand(product_id=None, top_n=20):
         order__status__in=['confirmed', 'delivered']
     ).annotate(
         week=TruncWeek('order__order_date')
-    ).values('week', 'product_name').annotate(
+    ).values('week', 'product_name', 'product_id').annotate(
         quantity=Coalesce(Sum('quantity'), 0)
     ).order_by('product_name', 'week')
 
     if not qs.exists():
-        return pd.DataFrame(columns=['week', 'product_name', 'quantity'])
+        return pd.DataFrame(columns=['week', 'product_name', 'product_id', 'quantity'])
 
     df = pd.DataFrame(list(qs))
     df['week'] = pd.to_datetime(df['week'])
@@ -185,6 +184,8 @@ def get_customer_rfm_data():
         monetary=Coalesce(Sum('orders__total_amount', filter=Q(orders__status__in=['confirmed', 'delivered'])), Value(0, output_field=DecimalField())),
         last_order=Max('orders__order_date', filter=Q(orders__status__in=['confirmed', 'delivered'])),
         first_order=Min('orders__order_date', filter=Q(orders__status__in=['confirmed', 'delivered'])),
+    ).filter(
+        frequency__gt=0
     ).values('id', 'name', 'email', 'frequency', 'monetary', 'last_order', 'first_order')
 
     if not data:

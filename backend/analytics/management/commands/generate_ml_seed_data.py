@@ -17,6 +17,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from sales.models import Customer, SalesOrder, SalesOrderItem
+# Inventory seed data removed (module not available)
+# from inventory.models import Product
 from invoicing.models import Invoice, InvoiceItem, Payment
 from accounting.models import Account, JournalEntry, Transaction
 from purchases.models import Supplier, PurchaseOrder, PurchaseOrderItem

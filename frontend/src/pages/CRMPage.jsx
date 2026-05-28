@@ -13,6 +13,7 @@ import {
   Phone, Mail, Building2, ArrowRight,
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../context/AuthContext';
 
 const SC = {
   active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -49,6 +50,7 @@ const STATS = [
 const Sp = () => (<svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>);
 
 export default function CRMPage() {
+  const { user } = useAuth();
   const { locale } = useI18n();
   const nl = locale === 'ar' ? 'ar-SA' : 'en-US';
   const fm = (v) => Number(v || 0).toLocaleString(nl, { minimumFractionDigits: 2 });
@@ -69,13 +71,13 @@ export default function CRMPage() {
   const [lForm, setLForm] = useState({ title: '', contact: '', value: '', probability: '', stage: '' });
   const [campForm, setCampForm] = useState({ name: '', type: '', budget: '', start_date: '', end_date: '' });
 
-  const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const ic = 'w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none';
   const badge = (s) => `px-2.5 py-1 rounded-full text-xs font-medium ${SC[s] || ''}`;
   const Th = ({ children }) => <th className="px-4 py-3 text-right font-medium">{children}</th>;
 
   useEffect(() => {
-    (async () => { try { setStats((await crmAPI.getStats()).data); } catch {} })();
+    (async () => { try { setStats((await crmAPI.getStats()).data); } catch (error) { console.error('Error:', error); } })();
   }, []);
 
   useEffect(() => {

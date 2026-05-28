@@ -78,6 +78,12 @@ urlpatterns = [
     path('quotations/<int:pk>/delete/', views.QuotationDeleteView.as_view(), name='crm-quotation-delete'),
     path('quotations/<int:pk>/convert/', views.QuotationConvertView.as_view(), name='crm-quotation-convert'),
 
+    # أفضل مندوبي المبيعات
+    path('top-reps/', views.TopRepsView.as_view(), name='crm-top-reps'),
+
+    # توزيع مصادر الفرص
+    path('lead-sources/', views.LeadSourceDistributionView.as_view(), name='crm-lead-sources'),
+
     # العمولات
     path('commissions/', views.CommissionListView.as_view(), name='crm-commissions'),
     path('commissions/<int:pk>/', views.CommissionDetailView.as_view(), name='crm-commission-detail'),

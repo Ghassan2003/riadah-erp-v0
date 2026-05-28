@@ -8,6 +8,8 @@ from datetime import date
 from django.db import models
 from django.utils import timezone
 
+from core.validators import validate_file_type
+
 
 class Project(models.Model):
     """Project model for managing project information and progress."""
@@ -750,6 +752,7 @@ class TimeEntry(models.Model):
         verbose_name = 'سجل وقت'
         verbose_name_plural = 'سجلات الوقت'
         ordering = ['-date']
+        unique_together = [['user', 'project', 'date']]
 
     def __str__(self):
         return f'{self.user.get_full_name() or self.user.username} - {self.hours}س - {self.date}'
@@ -896,6 +899,7 @@ class ProjectDocument(models.Model):
     file = models.FileField(
         upload_to='project_documents/',
         verbose_name='الملف',
+        validators=[validate_file_type],
     )
     description = models.TextField(
         blank=True,

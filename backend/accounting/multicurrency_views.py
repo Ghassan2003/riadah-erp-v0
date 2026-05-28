@@ -62,7 +62,11 @@ class CurrencyDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Currency
-        fields = '__all__'
+        fields = (
+            'id', 'code', 'name', 'name_en', 'symbol', 'is_default',
+            'exchange_rate', 'rate_date', 'is_active', 'created_at', 'updated_at',
+            'recent_rates',
+        )
         read_only_fields = ('id', 'code', 'created_at', 'updated_at')
 
     def get_recent_rates(self, obj):
@@ -146,7 +150,12 @@ class BranchDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Branch
-        fields = '__all__'
+        fields = (
+            'id', 'code', 'name', 'name_en', 'address', 'city', 'country',
+            'phone', 'is_active', 'is_headquarters', 'manager', 'default_currency',
+            'created_at', 'updated_at', 'manager_name', 'default_currency_name',
+            'accounts',
+        )
         read_only_fields = ('id', 'code', 'created_at', 'updated_at')
 
     def get_accounts(self, obj):

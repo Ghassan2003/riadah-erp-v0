@@ -109,7 +109,7 @@ def run_invoice_risk_classification():
                 risk_records_created += 1
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Invoice risk classification complete: {risk_records_created} high-risk invoices, {duration_ms}ms")
+    logger.info("Invoice risk classification complete: %d high-risk invoices, %dms", risk_records_created, duration_ms)
 
     return {
         'status': 'success',

@@ -7,6 +7,7 @@ from scipy import stats
 
 from analytics.services.data_extractor import get_daily_sales, decimal_to_float
 from analytics.models import AnomalyRecord
+from django.utils import timezone as django_timezone
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ def run_sales_anomaly(z_threshold=2.5):
                     customer_name = order.customer.name if order.customer else "\u0639\u0645\u064a\u0644 \u0646\u0642\u062f\u064a"
                     AnomalyRecord.objects.create(
                         anomaly_type='sales',
-                        detected_at=row['date'],
+                        detected_at=django_timezone.now(),
                         entity_type='sales_order',
                         entity_id=order.id,
                         expected_range_min=max(0, float(row['rolling_mean'] - 2 * row['rolling_std'])),
@@ -73,7 +74,7 @@ def run_sales_anomaly(z_threshold=2.5):
                     records_created += 1
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Sales anomaly detection complete: {records_created} anomalies found, {duration_ms}ms")
+    logger.info("Sales anomaly detection complete: %d anomalies found, %dms", records_created, duration_ms)
 
     return {
         'status': 'success',

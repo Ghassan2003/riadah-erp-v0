@@ -487,7 +487,7 @@ class AuditLogResponseMiddleware:
                     request=request,
                 )
             except Exception as e:
-                logger.warning(f'Failed to create audit log: {e}')
+                logger.warning('Failed to create audit log: %s', e)
         except Exception as e:
             # Catch-all: never let audit logging crash the response
             logger.warning(

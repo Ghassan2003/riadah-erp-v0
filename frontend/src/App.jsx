@@ -4,7 +4,7 @@
  */
 
 import { useAuth } from './context/AuthContext';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Suspense, lazy } from 'react';
 import { AuthProvider } from './context/AuthContext';
@@ -13,6 +13,7 @@ import { I18nProvider } from './i18n/I18nContext';
 import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingSpinner from './components/LoadingSpinner';
+import ErrorBoundary from './components/ErrorBoundary';
 import AccessDeniedPage from './pages/AccessDeniedPage';
 
 // Lazy-loaded pages for performance
@@ -112,16 +113,6 @@ function RoleDashboard() {
  */
 function SmartDashboardRedirect() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const role = user?.role;
-
-  const roleMap = {
-    sales: '/orders',
-    accountant: '/accounts',
-    hr: '/employees',
-    purchasing: '/purchases',
-    project_manager: '/projects',
-  };
 
   // المدير يرى لوحة التحكم الشاملة
   // باقي الأدوار يمكنهم اختيار لوحة التحكم أو صفحتهم الرئيسية
@@ -136,6 +127,7 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <Suspense fallback={<LoadingSpinner />}>
+            <ErrorBoundary>
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<LandingPage />} />
@@ -491,6 +483,7 @@ function App() {
                 {/* Default redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+            </ErrorBoundary>
             </Suspense>
 
             {/* Toast notifications */}

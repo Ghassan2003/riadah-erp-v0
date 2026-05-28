@@ -10,8 +10,13 @@ from datetime import timedelta
 # Load .env file automatically
 from dotenv import load_dotenv
 load_dotenv()
-from celery.schedules import crontab
+
 from django.core.exceptions import ImproperlyConfigured
+
+try:
+    from celery.schedules import crontab
+except ImportError:
+    crontab = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -220,15 +225,15 @@ CELERY_ENABLE_UTC = True
 CELERY_BEAT_SCHEDULE = {
     'run-daily-forecast': {
         'task': 'analytics.tasks.run_daily_forecast',
-        'schedule': crontab(hour=2, minute=0),  # 2 AM daily
+        'schedule': crontab(hour=2, minute=0) if crontab else None,  # 2 AM daily
     },
     'run-daily-anomaly-detection': {
         'task': 'analytics.tasks.run_daily_anomaly_detection',
-        'schedule': crontab(hour=3, minute=0),  # 3 AM daily
+        'schedule': crontab(hour=3, minute=0) if crontab else None,  # 3 AM daily
     },
     'run-weekly-clustering': {
         'task': 'analytics.tasks.run_weekly_clustering',
-        'schedule': crontab(hour=4, minute=0, day_of_week=1),  # Monday 4 AM
+        'schedule': crontab(hour=4, minute=0, day_of_week=1) if crontab else None,  # Monday 4 AM
     },
 }
 

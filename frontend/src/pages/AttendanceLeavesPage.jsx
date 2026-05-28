@@ -12,6 +12,7 @@ import {
   Eye, Filter,
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../context/AuthContext';
 
 const ATTENDANCE_COLORS = {
   present: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -29,6 +30,7 @@ const APPROVAL_COLORS = {
 };
 
 export default function AttendanceLeavesPage() {
+  const { user } = useAuth();
   const { t, locale } = useI18n();
 
   const ATTENDANCE_STATUS = {
@@ -66,7 +68,7 @@ export default function AttendanceLeavesPage() {
   const [saving, setSaving] = useState(false);
   const [dateFilter, setDateFilter] = useState('');
 
-  const userRole = JSON.parse(localStorage.getItem('user') || '{}')?.role;
+  const userRole = user?.role;
   const isAdmin = userRole === 'admin';
 
   // Attendance form
@@ -98,7 +100,7 @@ export default function AttendanceLeavesPage() {
     try {
       const res = await employeesAPI.list({ page_size: 200 });
       setEmployees(res.data.results || res.data);
-    } catch {}
+    } catch (error) { console.error('Error:', error); }
   };
 
   useEffect(() => {

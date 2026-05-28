@@ -127,9 +127,7 @@ class AttachmentDetailView(generics.RetrieveUpdateDestroyAPIView):
             except (OSError, ValueError):
                 pass
         instance.delete()
-        return Response({
-            'message': 'تم حذف المرفق بنجاح / Attachment deleted successfully',
-        })
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AttachmentDownloadView(views.APIView):

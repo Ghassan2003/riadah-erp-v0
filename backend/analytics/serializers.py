@@ -36,7 +36,7 @@ class AnomalyRecordSerializer(serializers.ModelSerializer):
             'is_reviewed', 'reviewed_by', 'reviewed_by_name',
             'review_notes', 'reviewed_at'
         ]
-        read_only_fields = ['detected_at', 'anomaly_score', 'created_at']
+        read_only_fields = ['detected_at', 'anomaly_score']
 
 
 class AnomalyReviewSerializer(serializers.ModelSerializer):

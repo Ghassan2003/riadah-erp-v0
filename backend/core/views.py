@@ -228,17 +228,86 @@ class DashboardLiveStatsView(views.APIView):
         User = get_user_model()
         active_users = User.objects.filter(is_active=True).count()
 
-        # Recent activity (last 10 audit log entries)
+        # Recent activity (last 10 audit log entries) — formatted for AnalyticsPage
         from auditlog.models import AuditLog
+
+        # Map actions to Arabic-friendly types and colors
+        ACTION_TYPE_MAP = {
+            'create': ('order', 'bg-emerald-100 dark:bg-emerald-900/30'),
+            'update': ('customer', 'bg-blue-100 dark:bg-blue-900/30'),
+            'delete': ('alert', 'bg-red-100 dark:bg-red-900/30'),
+            'login': ('customer', 'bg-purple-100 dark:bg-purple-900/30'),
+        }
+        MODEL_TYPE_MAP = {
+            'salesorder': 'order',
+            'purchaseorder': 'order',
+            'invoice': 'invoice',
+            'customer': 'customer',
+            'employee': 'customer',
+            'product': 'product',
+        }
+
         recent_activity = []
         for log in AuditLog.objects.select_related('user').order_by('-created_at')[:10]:
+            action_lower = (log.action or '').lower()
+            model_lower = (log.model_name or '').lower().replace(' ', '')
+            activity_type, activity_color = ACTION_TYPE_MAP.get(action_lower, ('alert', 'bg-gray-100 dark:bg-gray-700'))
+            # Override type based on model
+            for model_key, model_type in MODEL_TYPE_MAP.items():
+                if model_key in model_lower:
+                    activity_type = model_type
+                    break
+
+            user_name = ''
+            if log.user:
+                user_name = log.user.get_full_name() or log.user.username
+
+            # Build readable text from action + model + object
+            action_ar = {
+                'create': 'إنشاء',
+                'update': 'تعديل',
+                'delete': 'حذف',
+                'login': 'تسجيل دخول',
+            }.get(action_lower, log.action or 'عملية')
+
+            model_ar = {
+                'salesorder': 'طلب بيع',
+                'purchaseorder': 'طلب شراء',
+                'invoice': 'فاتورة',
+                'customer': 'عميل',
+                'employee': 'موظف',
+                'product': 'منتج',
+                'account': 'حساب',
+                'journalentry': 'قيد يومية',
+            }.get(model_lower, log.model_name or 'سجل')
+
+            obj_repr = log.object_repr or ''
+            text = f'{user_name} — {action_ar} {model_ar}'
+            if obj_repr and action_lower != 'login':
+                text += f': {obj_repr}'
+
+            # Format time relative to now
+            log_time = log.created_at
+            if log_time:
+                now_dt = timezone.now()
+                time_diff = now_dt - log_time
+                if time_diff.total_seconds() < 60:
+                    time_str = 'الآن'
+                elif time_diff.total_seconds() < 3600:
+                    time_str = f'منذ {int(time_diff.total_seconds() / 60)} دقيقة'
+                elif time_diff.total_seconds() < 86400:
+                    time_str = f'منذ {int(time_diff.total_seconds() / 3600)} ساعة'
+                else:
+                    time_str = f'منذ {int(time_diff.total_seconds() / 86400)} يوم'
+            else:
+                time_str = ''
+
             recent_activity.append({
                 'id': log.id,
-                'user': log.user.get_full_name() or log.user.username if log.user else 'System',
-                'action': log.action,
-                'model': log.model_name,
-                'object_repr': log.object_repr or '',
-                'created_at': str(log.created_at),
+                'type': activity_type,
+                'text': text,
+                'time': time_str,
+                'color': activity_color,
             })
 
         # Sparkline data: last 7 days orders
@@ -483,31 +552,64 @@ class SalesAnalyticsView(views.APIView):
         this_year_map = {m['month'].strftime('%Y-%m'): float(m['total']) for m in this_year_sales}
         last_year_map = {m['month'].strftime('%Y-%m'): float(m['total']) for m in last_year_sales}
 
+        # Count orders per month (confirmed)
+        this_year_orders_qs = SalesOrder.objects.filter(
+            status='confirmed',
+            order_date__year=current_year
+        ).annotate(month=TruncMonth('order_date')).values('month').annotate(
+            orders=Count('id')
+        ).order_by('month')
+        this_year_orders_map = {m['month'].strftime('%Y-%m'): int(m['orders']) for m in this_year_orders_qs}
+
         monthly_comparison = []
+        prev_sales = 0.0
         for i in range(11, -1, -1):
             month_date = now - timedelta(days=i * 30)
             month_start = month_date.replace(day=1)
             month_label = month_start.strftime('%Y-%m')
             this_year_val = this_year_map.get(month_label, 0.0)
-            last_year_label = f'{month_start.year - 1}-{month_start.strftime("%m")}'
-            last_year_val = last_year_map.get(last_year_label, 0.0)
+            orders_count = this_year_orders_map.get(month_label, 0)
+
+            # Determine trend based on previous month
+            trend = 'neutral'
+            if prev_sales > 0:
+                if this_year_val > prev_sales:
+                    trend = 'up'
+                elif this_year_val < prev_sales:
+                    trend = 'down'
+
             monthly_comparison.append({
                 'month': month_label,
-                'thisYear': this_year_val,
-                'lastYear': last_year_val,
+                'sales': this_year_val,
+                'orders': orders_count,
+                'lastYear': last_year_map.get(f'{month_start.year - 1}-{month_start.strftime("%m")}', 0.0),
             })
+            prev_sales = this_year_val
 
-        # Top products by sales volume
-        top_products = SalesOrderItem.objects.filter(
+        # Top products by sales volume — with fields expected by AnalyticsPage
+        top_products_qs = SalesOrderItem.objects.filter(
             order__status='confirmed'
         ).values(
             'product_name',
         ).annotate(
-            volume=Coalesce(Sum('quantity'), Value(0)),
+            units=Coalesce(Sum('quantity'), Value(0)),
             revenue=Coalesce(Sum(F('quantity') * F('unit_price')), Value(0), output_field=DecimalField(max_digits=16, decimal_places=2)),
-        ).order_by('-volume')[:10]
+        ).order_by('-units')[:10]
 
-        top_products_data = [{'name': p['product_name'] or '', 'volume': int(p['volume']), 'revenue': float(p['revenue'])} for p in top_products]
+        top_products_data = []
+        for idx, p in enumerate(top_products_qs):
+            # Determine trend: compare with next product (lower ranked)
+            trend = 'neutral'
+            if idx > 0 and top_products_qs[idx - 1]['revenue'] != p['revenue']:
+                trend = 'down'
+            top_products_data.append({
+                'id': idx + 1,
+                'name': p['product_name'] or f'منتج {idx + 1}',
+                'category': '',
+                'units': int(p['units']),
+                'revenue': float(p['revenue']),
+                'trend': trend,
+            })
 
         # Customer order distribution (top customers by order count)
         customer_dist = SalesOrder.objects.filter(status='confirmed').values(

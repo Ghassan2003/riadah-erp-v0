@@ -42,7 +42,13 @@ class StartupProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StartupProfile
-        fields = '__all__'
+        fields = [
+            'id', 'company_name', 'industry', 'stage', 'founded_date',
+            'team_size', 'currency', 'initial_funding', 'monthly_recurring_revenue',
+            'monthly_operating_expenses', 'cash_balance',
+            'burn_rate', 'runway_months', 'gross_margin_pct',
+            'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at')
 
 
@@ -85,7 +91,13 @@ class FundingRoundSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FundingRound
-        fields = '__all__'
+        fields = [
+            'id', 'startup', 'round_type', 'round_name', 'amount_raised',
+            'valuation_pre_money', 'valuation_post_money', 'investor_names',
+            'equity_diluted', 'round_date', 'notes',
+            'round_type_display', 'created_by_name',
+            'created_by', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at', 'created_by')
 
     def validate(self, attrs):
@@ -135,7 +147,12 @@ class BurnRateEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BurnRateEntry
-        fields = '__all__'
+        fields = [
+            'id', 'startup', 'month', 'category', 'amount', 'entry_type',
+            'description', 'is_recurring',
+            'entry_type_display', 'category_display', 'created_by_name',
+            'created_by', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at', 'created_by')
 
 
@@ -158,7 +175,12 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionPlan
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'description', 'price_monthly', 'price_yearly',
+            'features', 'is_active', 'trial_days', 'max_users',
+            'subscriber_count',
+            'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at')
 
     def get_subscriber_count(self, obj):
@@ -182,7 +204,14 @@ class SubscriptionCycleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionCycle
-        fields = '__all__'
+        fields = [
+            'id', 'startup', 'customer', 'customer_name', 'plan',
+            'status', 'billing_cycle', 'amount', 'start_date', 'end_date',
+            'trial_end_date', 'cancelled_at', 'cancellation_reason', 'notes',
+            'status_display', 'billing_cycle_display', 'plan_name',
+            'days_remaining',
+            'created_by', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at', 'created_by')
 
     def get_days_remaining(self, obj):
@@ -221,7 +250,13 @@ class CustomerMetricSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerMetric
-        fields = '__all__'
+        fields = [
+            'id', 'startup', 'customer', 'customer_name',
+            'acquisition_channel', 'acquisition_cost', 'monthly_revenue',
+            'months_active', 'total_revenue', 'projected_ltv', 'cohort', 'notes',
+            'ltv_cac_ratio', 'payback_months',
+            'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at')
 
 
@@ -251,7 +286,17 @@ class FinancialKPISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FinancialKPI
-        fields = '__all__'
+        fields = [
+            'id', 'startup', 'month',
+            'total_revenue', 'mrr', 'arr', 'arpu',
+            'total_expenses', 'burn_rate', 'cac', 'ltv',
+            'runway_months', 'gross_margin_pct', 'net_margin_pct',
+            'ltv_cac_ratio', 'quick_ratio',
+            'total_subscribers', 'new_subscribers', 'churned_subscribers', 'churn_rate_pct',
+            'cash_balance', 'total_funding_raised',
+            'month_display',
+            'calculated_at',
+        ]
         read_only_fields = ('id', 'calculated_at')
 
 
@@ -271,7 +316,13 @@ class FinancialEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FinancialEntry
-        fields = '__all__'
+        fields = [
+            'id', 'startup', 'entry_type', 'category', 'amount',
+            'description', 'entry_date', 'idempotency_key',
+            'external_reference', 'external_source', 'metadata',
+            'entry_type_display', 'created_by_name',
+            'created_by', 'created_at', 'updated_at',
+        ]
         read_only_fields = ('created_at', 'updated_at', 'created_by')
 
 

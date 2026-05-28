@@ -65,8 +65,8 @@ def run_sales_forecast(months_ahead=6):
             avg_growth = train_series.pct_change().dropna().mean()
             last_value = train_series.iloc[-1]
             fitted = None
-    except Exception as e:
-        logger.warning(f"Holt-Winters failed: {e}, using simple growth")
+    except (ValueError, NotImplementedError) as e:
+        logger.warning("Holt-Winters failed: %s, using simple growth", e)
         avg_growth = train_series.pct_change().dropna().mean()
         last_value = train_series.iloc[-1]
         fitted = None
@@ -125,7 +125,7 @@ def run_sales_forecast(months_ahead=6):
         metrics_dict=metrics
     )
 
-    logger.info(f"Sales forecast complete: {len(forecast_df)} predictions, {duration_ms}ms")
+    logger.info("Sales forecast complete: %d predictions, %dms", len(forecast_df), duration_ms)
 
     return {
         'status': 'success',

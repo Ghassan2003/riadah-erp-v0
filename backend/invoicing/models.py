@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from sales.models import SalesOrder, Customer
 from purchases.models import Supplier
-# TODO: inventory module removed - InvoiceItem.product FK needs redesign
+# InvoiceItem.product FK removed (inventory module not available)
 # from inventory.models import Product
 from users.models import User
 
@@ -169,7 +169,7 @@ class InvoiceItem(models.Model):
         Invoice, on_delete=models.CASCADE,
         related_name='items', verbose_name='الفاتورة'
     )
-    # TODO: inventory module removed - replaced FK with CharField
+    # product_name used instead of FK (inventory module not available)
     product_name = models.CharField(
         max_length=255, blank=True, default='',
         verbose_name='اسم المنتج'

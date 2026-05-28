@@ -135,7 +135,7 @@ export default function HRRecruitmentPage() {
     try {
       const res = await departmentsAPI.list();
       setDepartments(res.data.results || res.data || []);
-    } catch { /* silent */ }
+    } catch (error) { console.error('Error:', error); }
   };
 
   const fetchTabData = async () => {

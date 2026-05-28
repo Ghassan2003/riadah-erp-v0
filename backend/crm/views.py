@@ -11,7 +11,7 @@ from rest_framework import (
     generics, status, permissions, filters, views,
 )
 from rest_framework.response import Response
-from django.db.models import Sum, Count, F, DecimalField, DurationField, Q, Value, Avg, ExpressionWrapper
+from django.db.models import Sum, Count, F, DecimalField, DurationField, Q, Value, Avg, ExpressionWrapper, Case, When
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -106,6 +106,12 @@ class CRMStatsView(views.APIView):
             ).count(),
             'won_leads': Lead.objects.filter(status='won').count(),
             'lost_leads': Lead.objects.filter(status='lost').count(),
+            'won_revenue': Lead.objects.filter(status='won').aggregate(
+                total=Coalesce(
+                    Sum('value'),
+                    Value(0), output_field=DecimalField(max_digits=14, decimal_places=2)
+                )
+            )['total'],
             'total_pipeline_value': Lead.objects.filter(
                 status__in=('new', 'contacted', 'qualified', 'proposal', 'negotiation')
             ).aggregate(
@@ -239,7 +245,7 @@ class CompanyDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
-        return Response({'message': 'تم حذف الشركة بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CompanyContactsView(generics.ListAPIView):
@@ -391,7 +397,7 @@ class ContactDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
-        return Response({'message': 'تم حذف جهة الاتصال بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -678,7 +684,7 @@ class CustomerSegmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
-        return Response({'message': 'تم حذف شريحة العملاء بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -1166,6 +1172,129 @@ class SalesStageAnalyticsView(views.APIView):
 
         serializer = SalesStageAnalyticsSerializer(analytics_data)
         return Response(serializer.data)
+
+
+# =============================================
+# واجهة أفضل مندوبي المبيعات
+# =============================================
+
+class TopRepsView(views.APIView):
+    """GET: أفضل مندوبي المبيعات حسب الإيرادات (عدد الصفقات الرابحة، الإيرادات، معدل الفوز)."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # تجميع الفرص الرابحة حسب المندوب المسند إليه
+        won_aggregates = Lead.objects.filter(
+            status='won',
+            assigned_to__isnull=False,
+        ).values('assigned_to').annotate(
+            deals=Count('id'),
+            revenue=Coalesce(
+                Sum('value'),
+                Value(0), output_field=DecimalField(max_digits=14, decimal_places=2)
+            ),
+        ).order_by('-revenue')[:10]
+
+        # تجميع إجمالي الفرص (غير المكتسبة فقط) لكل مندوب لحساب معدل الفوز
+        total_aggregates = Lead.objects.filter(
+            assigned_to__isnull=False,
+        ).values('assigned_to').annotate(
+            total_leads=Count('id'),
+            won_leads=Count(
+                Case(
+                    When(status='won', then=1),
+                )
+            ),
+        )
+        total_map = {t['assigned_to']: t for t in total_aggregates}
+
+        # جمع معرفات المستخدمين المطلوبين للاستعلام عن أسمائهم
+        user_ids = [w['assigned_to'] for w in won_aggregates]
+        # أيضاً إضافة معرفات المستخدمين من total_map الذين قد لا يكونوا في won_aggregates
+        for uid in total_map:
+            if uid not in user_ids:
+                user_ids.append(uid)
+
+        from users.models import User
+        users_map = {
+            u.id: u
+            for u in User.objects.filter(id__in=user_ids)
+        }
+
+        reps_data = []
+        for w in won_aggregates:
+            user = users_map.get(w['assigned_to'])
+            if not user:
+                continue
+
+            total = total_map.get(w['assigned_to'], {})
+            total_leads = total.get('total_leads', 0)
+            won_leads = total.get('won_leads', 0)
+
+            win_rate = 0.0
+            if total_leads > 0:
+                win_rate = round((won_leads / total_leads) * 100, 1)
+
+            reps_data.append({
+                'name': user.get_full_name() or user.username,
+                'deals': w['deals'],
+                'revenue': float(w['revenue']),
+                'win_rate': win_rate,
+            })
+
+        return Response(reps_data)
+
+
+# =============================================
+# واجهة توزيع مصادر الفرص
+# =============================================
+
+class LeadSourceDistributionView(views.APIView):
+    """GET: تحليلات مصادر الفرص - عدد الفرص، عدد المحولات، الإيرادات لكل مصدر."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        source_labels = dict(Lead.SOURCE_CHOICES)
+        source_arabic_labels = dict(Lead.SOURCE_CHOICES)
+
+        # تجميع البيانات حسب المصدر
+        source_aggregates = Lead.objects.values('source').annotate(
+            leads=Count('id'),
+            converted=Count(
+                Case(
+                    When(status='won', then=1),
+                )
+            ),
+            revenue=Coalesce(
+                Sum(
+                    Case(
+                        When(status='won', then=F('value')),
+                        default=Value(0),
+                        output_field=DecimalField(max_digits=14, decimal_places=2),
+                    )
+                ),
+                Value(0), output_field=DecimalField(max_digits=14, decimal_places=2)
+            ),
+        ).order_by('-leads')
+
+        distribution_data = []
+        for s in source_aggregates:
+            source_key = s['source']
+            display_name = source_labels.get(source_key, source_key or 'غير محدد')
+
+            distribution_data.append({
+                'name': display_name,
+                'leads': s['leads'],
+                'converted': s['converted'],
+                'revenue': float(s['revenue']),
+            })
+
+        return Response({
+            'sources': distribution_data,
+            'labels': source_arabic_labels,
+        })
 
 
 # =============================================

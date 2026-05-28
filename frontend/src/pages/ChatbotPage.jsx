@@ -14,7 +14,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { api } from '../api';
+import { chatbotAPI } from '../api';
 import {
   Send,
   Plus,
@@ -97,7 +97,7 @@ export default function ChatbotPage() {
   /** Fetch the list of conversations. */
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await api.get('/chatbot/conversations/');
+      const res = await chatbotAPI.listConversations();
       setConversations(res.data?.results || res.data || []);
     } catch {
       // silent — conversations list is non-critical
@@ -109,7 +109,7 @@ export default function ChatbotPage() {
     setActiveConvId(convId);
     setLoadingConv(true);
     try {
-      const res = await api.get(`/chatbot/conversations/${convId}/`);
+      const res = await chatbotAPI.getConversation(convId);
       setMessages(res.data?.messages || []);
     } catch {
       toast.error('فشل في تحميل المحادثة');
@@ -125,7 +125,7 @@ export default function ChatbotPage() {
     async (convId, e) => {
       e?.stopPropagation();
       try {
-        await api.delete(`/chatbot/conversations/${convId}/`);
+        await chatbotAPI.deleteConversation(convId);
         setConversations((prev) => prev.filter((c) => c.id !== convId));
         if (activeConvId === convId) {
           setActiveConvId(null);
@@ -156,7 +156,7 @@ export default function ChatbotPage() {
     setSending(true);
 
     try {
-      const res = await api.post('/chatbot/chat/', {
+      const res = await chatbotAPI.sendMessage({
         message: text,
         conversation_id: activeConvId || undefined,
       });

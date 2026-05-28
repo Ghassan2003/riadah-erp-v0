@@ -13,6 +13,7 @@ import {
   Calculator, Users, TrendingUp, Clock, RefreshCw,
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../context/AuthContext';
 
 const SC = {
   draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
@@ -47,6 +48,7 @@ const STATS = [
 const Sp = () => (<svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>);
 
 export default function PayrollPage() {
+  const { user } = useAuth();
   const { locale } = useI18n();
   const nl = locale === 'ar' ? 'ar-SA' : 'en-US';
   const fm = (v) => Number(v || 0).toLocaleString(nl, { minimumFractionDigits: 2 });
@@ -73,12 +75,12 @@ export default function PayrollPage() {
   const [advForm, setAdvForm] = useState({ employee: '', amount: '', purpose: '' });
   const [lnForm, setLnForm] = useState({ employee: '', amount: '', months: '', monthly_installment: '' });
 
-  const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const ic = 'w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none';
   const badge = (s) => `px-2.5 py-1 rounded-full text-xs font-medium ${SC[s] || ''}`;
   const Th = ({ children }) => <th className="px-4 py-3 text-right font-medium">{children}</th>;
 
-  useEffect(() => { (async () => { try { setStats((await payrollAPI.getStats()).data); } catch {} })(); (async () => { setLd(true); try { setPeriods((await payrollAPI.getPeriods({ search, status: sFilter })).data.results || []); } catch { toast.error('خطأ في تحميل فترات الرواتب'); } finally { setLd(false); } })(); }, [search, sFilter]);
+  useEffect(() => { (async () => { try { setStats((await payrollAPI.getStats()).data); } catch (error) { console.error('Error:', error); } })(); (async () => { setLd(true); try { setPeriods((await payrollAPI.getPeriods({ search, status: sFilter })).data.results || []); } catch { toast.error('خطأ في تحميل فترات الرواتب'); } finally { setLd(false); } })(); }, [search, sFilter]);
 
   useEffect(() => { if (tab === 'payslips' && selPeriod) { (async () => { setLd(true); try { setRecords((await payrollAPI.getRecords({ period: selPeriod.id })).data.results || []); } catch { toast.error('خطأ في تحميل كشف الرواتب'); } finally { setLd(false); } })(); } }, [tab, selPeriod]);
 

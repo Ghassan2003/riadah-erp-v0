@@ -46,7 +46,8 @@ class ConversationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ('title',)
+        fields = ('id', 'title', 'created_at')
+        read_only_fields = ('id', 'created_at')
 
     def validate_title(self, value):
         """Validate the title field."""

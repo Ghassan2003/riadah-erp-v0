@@ -133,9 +133,7 @@ def _get_or_create_conversation(user, conversation_id, first_message):
             )
 
     # Generate a title from the first message (first 50 chars)
-    title = first_message[:50] if first_message else 'محادثة جديدة'
-    if len(first_message) > 50:
-        title += '...'
+    title = (first_message[:50] + '...') if first_message and len(first_message) > 50 else (first_message or 'محادثة جديدة')
 
     conversation = Conversation.objects.create(
         user=user,
@@ -177,7 +175,7 @@ def _build_context(user, conversation):
     context_parts = []
 
     # User role info
-    role_display = getattr(user, 'role_display', user.role or 'مستخدم')
+    role_display = user.get_role_display() if hasattr(user, 'get_role_display') else (user.role or 'مستخدم')
     context_parts.append(f'دور المستخدم: {role_display}')
     context_parts.append(f'اسم المستخدم: {user.username}')
 
@@ -190,6 +188,7 @@ def _build_context(user, conversation):
     )
 
     # Recent conversation history (last 6 messages for context window)
+    # QuerySet is ordered by -created_at (newest first), reversed() shows chronological order
     recent_messages = conversation.messages.order_by('-created_at')[:6]
     if recent_messages.exists():
         context_parts.append('\n--- سابقة المحادثة ---')

@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { payrollAPI, departmentsAPI, employeesAPI } from '../api';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   FileText, Download, Eye, Check, Ban, Search, Filter,
@@ -96,6 +97,7 @@ const Spinner = () => (
 );
 
 export default function PayslipsPage() {
+  const { user } = useAuth();
   const { locale } = useI18n();
   const nl = locale === 'ar' ? 'ar-SA' : 'en-US';
   const fmt = (v) => Number(v || 0).toLocaleString(nl, { minimumFractionDigits: 2 });
@@ -119,7 +121,7 @@ export default function PayslipsPage() {
   const [generating, setGenerating] = useState(false);
 
   /* ─── الصلاحيات ─── */
-  const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   /* ─── حقول الإدخال ─── */
   const selectCls = 'w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-700';

@@ -4,6 +4,7 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.conf import settings
 from django.utils import timezone
 from django.db.models import Sum, Count, Avg, Q, F, DecimalField
 from django.db.models.functions import TruncDate, TruncMonth, Coalesce
@@ -22,9 +23,11 @@ from .serializers import (
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user and request.user.is_authenticated and (
+        return (
             request.user.is_superuser or getattr(request.user, 'role', '') == 'admin'
         )
 
@@ -159,6 +162,24 @@ class ModelMetricsViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ['-trained_at']
 
 
+class InvoiceRiskView(APIView):
+    """Run invoice payment risk classification (admin only)."""
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request):
+        from .services.classification.invoice_risk import run_invoice_risk_classification
+        try:
+            results = run_invoice_risk_classification()
+            return Response(results)
+        except Exception as e:
+            logger.error('Invoice risk classification failed: %s', e)
+            return Response(
+                {'error': 'فشل تصنيف مخاطر الفواتير: {}'.format(str(e))},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -168,30 +189,38 @@ class RunForecastView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def post(self, request):
+        from .tasks import run_daily_forecast
+        # Try Celery with short timeout to avoid 20s hang when Redis is down
         try:
-            from .tasks import run_daily_forecast
-            result = run_daily_forecast.delay()
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            redis_host = settings.CELERY_BROKER_URL.split('//')[-1].split('@')[-1].split(':')[0] if hasattr(settings, 'CELERY_BROKER_URL') else 'localhost'
+            result = sock.connect_ex((redis_host, 6379))
+            sock.close()
+            if result == 0:
+                async_result = run_daily_forecast.delay()
+                return Response({
+                    'message': 'تم تشغيل نماذج التنبؤ بنجاح',
+                    'task_id': async_result.id,
+                    'status': 'pending',
+                })
+        except Exception:
+            pass
+        # Fallback: run synchronously
+        try:
+            results = run_daily_forecast()
             return Response({
-                'message': 'تم تشغيل نماذج التنبؤ بنجاح',
-                'task_id': result.id,
-                'status': 'pending',
+                'message': 'تم تشغيل نماذج التنبؤ بنجاح (متزامن)',
+                'results': results,
+                'status': 'completed',
             })
         except Exception as e:
-            logger.error(f'Failed to trigger forecast: {e}')
-            # Fallback: try running synchronously for dev without Celery
-            try:
-                from .tasks import run_daily_forecast
-                results = run_daily_forecast()
-                return Response({
-                    'message': 'تم تشغيل نماذج التنبؤ بنجاح (متزامن)',
-                    'results': results,
-                    'status': 'completed',
-                })
-            except Exception as e2:
-                return Response(
-                    {'error': f'فشل تشغيل التنبؤ: {str(e2)}'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+            logger.error('Failed to run forecast: %s', e)
+            return Response(
+                {'error': 'فشل تشغيل التنبؤ: {}'.format(str(e))},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class RunAnomalyDetectionView(APIView):
@@ -200,27 +229,35 @@ class RunAnomalyDetectionView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def post(self, request):
+        from .tasks import run_daily_anomaly_detection
+        # Try Celery with short timeout to avoid 20s hang when Redis is down
         try:
-            from .tasks import run_daily_anomaly_detection
-            result = run_daily_anomaly_detection.delay()
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            redis_host = settings.CELERY_BROKER_URL.split('//')[-1].split('@')[-1].split(':')[0] if hasattr(settings, 'CELERY_BROKER_URL') else 'localhost'
+            result = sock.connect_ex((redis_host, 6379))
+            sock.close()
+            if result == 0:
+                async_result = run_daily_anomaly_detection.delay()
+                return Response({
+                    'message': 'تم تشغيل كشف الشذوذ بنجاح',
+                    'task_id': async_result.id,
+                    'status': 'pending',
+                })
+        except Exception:
+            pass
+        # Fallback: run synchronously
+        try:
+            results = run_daily_anomaly_detection()
             return Response({
-                'message': 'تم تشغيل كشف الشذوذ بنجاح',
-                'task_id': result.id,
-                'status': 'pending',
+                'message': 'تم تشغيل كشف الشذوذ بنجاح (متزامن)',
+                'results': results,
+                'status': 'completed',
             })
         except Exception as e:
-            logger.error(f'Failed to trigger anomaly detection: {e}')
-            # Fallback: try running synchronously for dev without Celery
-            try:
-                from .tasks import run_daily_anomaly_detection
-                results = run_daily_anomaly_detection()
-                return Response({
-                    'message': 'تم تشغيل كشف الشذوذ بنجاح (متزامن)',
-                    'results': results,
-                    'status': 'completed',
-                })
-            except Exception as e2:
-                return Response(
-                    {'error': f'فشل تشغيل كشف الشذوذ: {str(e2)}'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+            logger.error('Failed to run anomaly detection: %s', e)
+            return Response(
+                {'error': 'فشل تشغيل كشف الشذوذ: {}'.format(str(e))},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

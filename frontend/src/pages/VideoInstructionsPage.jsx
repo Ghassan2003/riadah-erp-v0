@@ -198,7 +198,7 @@ export default function VideoInstructionsPage() {
           likes_count: prev.likes_count + 1,
         }));
       }
-    } catch {}
+    } catch (error) { console.error('Error:', error); }
   };
 
   // Add comment
@@ -219,7 +219,7 @@ export default function VideoInstructionsPage() {
     try {
       await videoCommentsAPI.delete(commentId);
       setComments(prev => prev.filter(c => c.id !== commentId));
-    } catch {}
+    } catch (error) { console.error('Error:', error); }
   };
 
   // Delete video (admin)

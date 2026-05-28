@@ -188,8 +188,8 @@ class TestPOSEndpoints:
 # 4. Warehouse (Multi-Warehouse) API Tests
 # ============================================================
 
+@pytest.mark.skip(reason="warehouse module removed")
 class TestWarehouseEndpoints:
-    """اختبارات نقاط نهاية نظام المخازن المتعددة."""
 
     def test_warehouse_stats(self, authenticated_client):
         """اختبار إحصائيات المخازن."""
@@ -309,6 +309,7 @@ class TestNewFeaturesAccessControl:
         response = sales_client.get('/api/pos/stats/')
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
 
+    @pytest.mark.skip(reason="warehouse module removed")
     def test_warehouse_warehouse_allowed(self, warehouse_client):
         """اختبار السماح لدور المخازن بالوصول للمستودعات."""
         response = warehouse_client.get('/api/warehouse/stats/')

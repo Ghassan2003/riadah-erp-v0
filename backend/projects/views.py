@@ -138,7 +138,7 @@ class ProjectDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         project.soft_delete()
-        return Response({'message': 'تم حذف المشروع بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -238,7 +238,7 @@ class ProjectTaskDeleteView(views.APIView):
             )
         task.status = 'cancelled'
         task.save(update_fields=['status', 'updated_at'])
-        return Response({'message': 'تم إلغاء المهمة بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -313,6 +313,8 @@ class TaskCommentUpdateView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        if instance.created_by != request.user and request.user.role != 'admin':
+            return Response({'error': 'ليس لديك صلاحية تعديل هذا التعليق'}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
@@ -335,8 +337,10 @@ class TaskCommentDeleteView(views.APIView):
                 {'error': 'التعليق غير موجود'},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        if comment.created_by != request.user and request.user.role != 'admin':
+            return Response({'error': 'ليس لديك صلاحية حذف هذا التعليق'}, status=status.HTTP_403_FORBIDDEN)
         comment.delete()
-        return Response({'message': 'تم حذف التعليق بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -430,7 +434,7 @@ class ProjectExpenseDeleteView(views.APIView):
         expense.delete()
         # Recalculate project spent after deletion
         project.recalculate_spent()
-        return Response({'message': 'تم حذف المصروف بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -630,7 +634,7 @@ class ProjectPhaseDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         phase.delete()
-        return Response({'message': 'تم حذف المرحلة بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -723,7 +727,7 @@ class ProjectMilestoneDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         milestone.delete()
-        return Response({'message': 'تم حذف المعلم بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -791,7 +795,7 @@ class BudgetItemDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         item.delete()
-        return Response({'message': 'تم حذف بند الميزانية بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -948,7 +952,7 @@ class ProjectRiskDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         risk.delete()
-        return Response({'message': 'تم حذف الخطر بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -1079,7 +1083,7 @@ class TimeEntryDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         entry.delete()
-        return Response({'message': 'تم حذف سجل الوقت بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -1249,7 +1253,7 @@ class ProjectContractDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         contract.delete()
-        return Response({'message': 'تم حذف العقد بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # =============================================
@@ -1317,4 +1321,4 @@ class ProjectDocumentDeleteView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         document.delete()
-        return Response({'message': 'تم حذف المستند بنجاح'})
+        return Response(status=status.HTTP_204_NO_CONTENT)

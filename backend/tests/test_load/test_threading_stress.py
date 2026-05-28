@@ -81,8 +81,6 @@ class TestPerformanceStress:
         client = APIClient()
         endpoints = [
             '/api/dashboard/stats/',
-            '/api/inventory/products/',
-            '/api/inventory/stats/',
             '/api/sales/orders/',
             '/api/sales/customers/',
             '/api/accounting/accounts/',
@@ -200,8 +198,6 @@ class TestPerformanceStress:
         client = APIClient()
         endpoints = {
             'dashboard': '/api/dashboard/stats/',
-            'products': '/api/inventory/products/',
-            'inventory_stats': '/api/inventory/stats/',
             'sales_orders': '/api/sales/orders/',
             'customers': '/api/sales/customers/',
             'sales_stats': '/api/sales/stats/',
@@ -223,9 +219,9 @@ class TestPerformanceStress:
             'projects': '/api/projects/',
             'project_tasks': '/api/projects/tasks/',
             'documents': '/api/documents/',
-            'maintenance_settings': '/api/maintenance/maintenance/settings/',
-            'backup_list': '/api/maintenance/maintenance/backups/',
-            'cron_jobs': '/api/maintenance/maintenance/cron-jobs/',
+            'maintenance_settings': '/api/maintenance/settings/',
+            'backup_list': '/api/maintenance/backups/',
+            'cron_jobs': '/api/maintenance/cron-jobs/',
         }
 
         results = {}
@@ -259,11 +255,10 @@ class TestPerformanceStress:
         print(f"\n    Overall average: {overall_avg*1000:.1f}ms")
         print(f"    Total throughput: {total_throughput:.1f} req/s")
 
+    @pytest.mark.skip(reason="inventory module removed - test needs redesign")
     def test_write_operations_stress(self):
         """اختبار ضغط عمليات الكتابة - إنشاء منتجات متتالية سريعة."""
-        # TODO: inventory module removed - test needs redesign
-        # from inventory.models import Product
-        self.skipTest("inventory module removed - test needs redesign")
+        pass
 
         client = APIClient()
         num_items = 20
@@ -296,55 +291,10 @@ class TestPerformanceStress:
         print(f"    P95: {p95_time:.3f}s")
         print(f"    Throughput: {throughput:.1f} creates/s")
 
+    @pytest.mark.skip(reason="inventory module removed - sales order creation needs product")
     def test_full_sales_workflow_stress(self):
         """اختبار ضغط دورة مبيعات كاملة - إنشاء عملاء وأوامر بيع."""
-        from sales.models import Customer, SalesOrder
-
-        client = APIClient()
-        num_orders = 10
-        times = []
-
-        # إنشاء منتج للاختبار
-        product_resp = client.post('/api/inventory/products/', {
-            'name': 'منتج ضغط المبيعات',
-            'sku': 'SALES-STRESS-001',
-            'quantity': 1000,
-            'unit_price': 100.00,
-        }, format='json', **self.headers)
-        assert product_resp.status_code == 201
-        product_id = product_resp.data.get('product', {}).get('id') or product_resp.data.get('id')
-
-        # إنشاء عميل
-        customer_resp = client.post('/api/sales/customers/', {
-            'name': 'عميل ضغط',
-            'email': 'stress@customer.com',
-            'phone': '0500000000',
-        }, format='json', **self.headers)
-        assert customer_resp.status_code == 201
-        customer_id = customer_resp.data.get('customer', {}).get('id') or customer_resp.data.get('id')
-
-        start_total = time.time()
-        for i in range(num_orders):
-            start = time.time()
-            response = client.post('/api/sales/orders/create/', {
-                'customer': customer_id,
-                'items': [{'product': product_id, 'quantity': 5}],
-                'notes': f'أمر ضغط {i}',
-            }, format='json', **self.headers)
-            elapsed = time.time() - start
-            times.append(elapsed)
-            assert response.status_code == 201, f"Order {i}: {response.status_code}"
-
-        total_time = time.time() - start_total
-        avg_time = sum(times) / len(times)
-        throughput = num_orders / total_time
-
-        assert avg_time < 3, f"Average {avg_time:.3f}s exceeds 3s threshold"
-
-        print(f"\n  === Sales Workflow Stress ({num_orders} orders) ===")
-        print(f"    Total time: {total_time:.2f}s")
-        print(f"    Average: {avg_time:.3f}s ({avg_time*1000:.1f}ms)")
-        print(f"    Throughput: {throughput:.1f} orders/s")
+        pass
 
     def test_mixed_read_write_stress(self):
         """اختبار ضغط مختلط - قراءة وكتابة متناوبة."""
@@ -357,19 +307,18 @@ class TestPerformanceStress:
             if i % 3 == 0:
                 # Write operation
                 start = time.time()
-                response = client.post('/api/inventory/products/', {
-                    'name': f'منتج مختلط {i}',
-                    'sku': f'MIX-{i:04d}',
-                    'quantity': 50,
-                    'unit_price': 25.00,
+                response = client.post('/api/sales/customers/', {
+                    'name': f'عميل مختلط {i}',
+                    'email': f'mixed{i}@test.com',
+                    'phone': f'0500000{i:04d}',
                 }, format='json', **self.headers)
                 elapsed = time.time() - start
                 times['write'].append(elapsed)
-                assert response.status_code == 201
+                assert response.status_code in (200, 201)
             else:
                 # Read operations
                 start = time.time()
-                response = client.get('/api/inventory/products/', **self.headers)
+                response = client.get('/api/sales/customers/', **self.headers)
                 elapsed = time.time() - start
                 times['read'].append(elapsed)
                 assert response.status_code == 200

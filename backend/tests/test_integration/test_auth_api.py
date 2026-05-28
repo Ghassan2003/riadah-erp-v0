@@ -69,7 +69,7 @@ class TestAuthEndpoints:
             'password': 'TwoFA@1234!',
         })
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['requires_2fa'] is True
+        assert response.data['requires_2FA'] is True
 
     def test_token_refresh(self, admin_user, api_client):
         """اختبار تجديد رمز الوصول."""

@@ -61,7 +61,7 @@ export default function CRMTicketsPage() {
   const ic = 'w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm';
 
   const fetchStats = useCallback(async () => {
-    try { setTicketStats((await crmAPI.ticketStats()).data); } catch {}
+    try { setTicketStats((await crmAPI.ticketStats()).data); } catch (error) { console.error('Error:', error); }
   }, []);
 
   const fetchTickets = useCallback(async () => {

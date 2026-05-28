@@ -11,9 +11,15 @@ logger = logging.getLogger(__name__)
 # ── Configuration ────────────────────────────────────────────────────────────
 import os
 
-HUGGINGFACE_API_URL = (
-    'https://api-inference.huggingface.co/models/meta-llama/Llama-3.1-8B-Instruct'
+HUGGINGFACE_BASE_URL = os.environ.get(
+    'HUGGINGFACE_BASE_URL',
+    'https://api-inference.huggingface.co'
 )
+HUGGINGFACE_MODEL_NAME = os.environ.get(
+    'HUGGINGFACE_MODEL_NAME',
+    'meta-llama/Llama-3.1-8B-Instruct'
+)
+HUGGINGFACE_API_URL = f'{HUGGINGFACE_BASE_URL}/models/{HUGGINGFACE_MODEL_NAME}'
 # Read API token from environment variable (never hardcode secrets)
 HUGGINGFACE_TOKEN = os.environ.get('HUGGINGFACE_API_TOKEN', '')
 
@@ -134,7 +140,7 @@ def generate_response(prompt, context=None):
         logger.error('HuggingFace API request error: %s', e)
         return 'عذراً، حدث خطأ في الاتصال بخدمة الذكاء الاصطناعي. يرجى المحاولة لاحقاً.'
 
-    except (KeyError, IndexError, ValueError) as e:
+    except (KeyError, IndexError, ValueError, TypeError) as e:
         logger.error('Error parsing HuggingFace API response: %s', e)
         return 'عذراً، حدث خطأ في معالجة الرد. يرجى المحاولة لاحقاً.'
 
@@ -145,16 +151,15 @@ def _build_full_prompt(prompt, context=None):
     """
     parts = []
 
-    # System message
-    parts.append(f'151 670\n{SYSTEM_PROMPT}')
+    # System message - Llama 3.1 Instruct special tokens
+    parts.append(f'<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n{SYSTEM_PROMPT}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n')
 
     # Optional context (treated as previous assistant knowledge)
     if context and context.strip():
-        parts.append(f'187 497\nمعلومات إضافية:\n{context}')
+        parts.append(f'<|start_header_id|>user<|end_header_id|>\nمعلومات إضافية:\n{context}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n')
 
     # User prompt
-    parts.append(f'188 933\n{prompt}')
-    parts.append('<|assistant| >')
+    parts.append(f'<|start_header_id|>user<|end_header_id|>\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n')
 
     return '\n'.join(parts)
 

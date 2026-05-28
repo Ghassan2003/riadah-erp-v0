@@ -79,7 +79,7 @@ def run_customer_segmentation():
         df['monetary'] / df['frequency'],
         0
     )
-    df['customer_tenure_days'] = (pd.Timestamp.now().tz_localize(None) - pd.to_datetime(df['first_order'])).dt.days.fillna(0).astype(int)
+    df['customer_tenure_days'] = (pd.Timestamp.now(tz='UTC').tz_localize(None) - pd.to_datetime(df['first_order'])).dt.days.fillna(0).astype(int)
 
     # Save results
     updated_count = 0
@@ -117,7 +117,7 @@ def run_customer_segmentation():
     segment_summary = df['segment_name'].value_counts().to_dict()
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Customer segmentation complete: {created_count} created, {updated_count} updated, {duration_ms}ms")
+    logger.info("Customer segmentation complete: %d created, %d updated, %dms", created_count, updated_count, duration_ms)
 
     return {
         'status': 'success',

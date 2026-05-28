@@ -59,31 +59,26 @@ def run_cashflow_forecast(months_ahead=6):
                 'yhat_upper': (forecast + 1.96 * std_err).values,
             })
 
-            model_type = f'cashflow_{col}'
+            model_type = 'cashflow'
             save_forecast_results(model_type, 'monthly', forecast_df)
             results[col] = len(forecast_df)
 
         except Exception as e:
-            logger.warning(f"Failed to forecast {col}: {e}")
+            logger.warning("Failed to forecast %s: %s", col, e)
             results[col] = 0
 
-    # Also build overall cashflow forecast DataFrame
-    overall_df = None
-    for col in ['inflow', 'outflow', 'net']:
-        model_type = f'cashflow_{col}'
-        saved = ForecastResult.objects.filter(model_type=model_type).order_by('forecast_date')
-        if saved.exists():
-            col_df = pd.DataFrame({
-                'ds': [r.forecast_date for r in saved],
-                f'yhat_{col}': [float(r.predicted_value) for r in saved],
-            })
-            if overall_df is None:
-                overall_df = col_df
-            else:
-                overall_df = overall_df.merge(col_df, on='ds', how='outer')
+    # Also build overall cashflow forecast DataFrame (from saved net results)
+    saved = ForecastResult.objects.filter(model_type='cashflow').order_by('forecast_date')
+    if saved.exists():
+        overall_df = pd.DataFrame({
+            'ds': [r.forecast_date for r in saved],
+            'yhat_net': [float(r.predicted_value) for r in saved],
+            'yhat_lower': [float(r.lower_bound) if r.lower_bound else None for r in saved],
+            'yhat_upper': [float(r.upper_bound) if r.upper_bound else None for r in saved],
+        })
 
     duration_ms = int((time.time() - start_time) * 1000)
-    logger.info(f"Cash flow forecast complete: {results}, {duration_ms}ms")
+    logger.info("Cash flow forecast complete: %s, %dms", results, duration_ms)
 
     return {
         'status': 'success',

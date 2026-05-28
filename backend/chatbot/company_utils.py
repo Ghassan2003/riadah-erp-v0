@@ -3,6 +3,8 @@ Company context utilities for multi-tenancy support.
 Currently returns empty context since multi-company support is not yet implemented.
 """
 
+import logging
+
 logger = logging.getLogger(__name__)
 
 

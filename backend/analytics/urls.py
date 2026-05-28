@@ -14,4 +14,5 @@ router.register(r'models/metrics', views.ModelMetricsViewSet, basename='model-me
 urlpatterns = router.urls + [
     path('run-forecast/', views.RunForecastView.as_view(), name='run-forecast'),
     path('run-anomaly-detection/', views.RunAnomalyDetectionView.as_view(), name='run-anomaly-detection'),
+    path('classification/invoice-risk/', views.InvoiceRiskView.as_view(), name='invoice-risk'),
 ]

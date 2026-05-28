@@ -15,6 +15,12 @@ const api = axios.create({
   },
 });
 
+// Helper: remove only auth-related keys from localStorage (preserves theme, language, etc.)
+function clearAuthData() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+}
+
 // Request interceptor: attach JWT token to every request
 api.interceptors.request.use(
   (config) => {
@@ -69,7 +75,7 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem('refresh_token');
         if (!refreshToken) {
           // No refresh token, redirect to login
-          localStorage.clear();
+          clearAuthData();
           window.location.href = '/login';
           return Promise.reject(error);
         }
@@ -87,7 +93,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         // Refresh failed, logout the user
-        localStorage.clear();
+        clearAuthData();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
@@ -956,6 +962,11 @@ export const crmAPI = {
   deleteQuotation: (id) => api.delete(`/crm/quotations/${id}/delete/`),
   convertQuotation: (id) => api.post(`/crm/quotations/${id}/convert/`),
 
+  // Top Sales Reps Analytics
+  getTopReps: () => api.get('/crm/top-reps/'),
+  // Lead Source Distribution
+  getLeadSources: () => api.get('/crm/lead-sources/'),
+
   // Commissions
   commissions: (params) => api.get('/crm/commissions/', { params }),
   createCommission: (data) => api.post('/crm/commissions/', data),
@@ -1039,9 +1050,9 @@ export const qualificationsAPI = {
   addLanguage: (data) => api.post('/hr/qualifications/languages/', data),
   getCertifications: (employeeId) => api.get('/hr/qualifications/certifications/', { params: { employee: employeeId } }),
   addCertification: (data) => api.post('/hr/qualifications/certifications/', data),
-  getDocuments: (employeeId) => api.get('/hr/documents/employee-documents/', { params: { employee: employeeId } }),
-  uploadDocument: (data) => api.post('/hr/documents/employee-documents/', data),
-  getDocumentTemplates: () => api.get('/hr/documents/document-templates/'),
+  getDocuments: (employeeId) => api.get('/hr/documents/documents/', { params: { employee: employeeId } }),
+  uploadDocument: (data) => api.post('/hr/documents/documents/', data),
+  getDocumentTemplates: () => api.get('/hr/documents/templates/'),
 };
 
 // Training API

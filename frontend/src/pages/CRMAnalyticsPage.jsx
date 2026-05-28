@@ -126,13 +126,23 @@ export default function CRMAnalyticsPage() {
       if (dateTo) params.date_to = dateTo;
       if (dateRange !== 'custom' && dateRange !== 'all') params.period = dateRange;
 
-      const [statsRes, funnelRes] = await Promise.all([
+      const [statsRes, funnelRes, forecastRes, stageRes, topRepsRes, sourcesRes] = await Promise.all([
         crmAPI.getStats().catch(() => null),
         crmAPI.getPipelineFunnel().catch(() => null),
         crmAPI.getSalesForecast(params).catch(() => null),
+        crmAPI.getSalesStageAnalytics(params).catch(() => null),
+        crmAPI.getTopReps().catch(() => null),
+        crmAPI.getLeadSources().catch(() => null),
       ]);
 
       if (statsRes) setStats(statsRes.data || {});
+
+      // Process forecast data into monthly trend
+      if (forecastRes && Array.isArray(forecastRes.data)) {
+        setMonthlyTrend(forecastRes.data);
+      } else if (forecastRes && forecastRes.data && forecastRes.data.forecast) {
+        setMonthlyTrend(forecastRes.data.forecast);
+      }
 
       // Process funnel data
       if (funnelRes && Array.isArray(funnelRes.data)) {
@@ -143,6 +153,60 @@ export default function CRMAnalyticsPage() {
           setFunnelData(fd.pipeline_stages);
         } else {
           setFunnelData(Array.isArray(fd) ? fd : []);
+        }
+      }
+
+      // ── Process stage analytics: win/loss, lost reasons, cycle time ──
+      if (stageRes && stageRes.data) {
+        const sd = stageRes.data;
+
+        // Win/Loss donut data from monthly_sales_trend
+        if (Array.isArray(sd.monthly_sales_trend)) {
+          const totalWon = sd.monthly_sales_trend.reduce((s, m) => s + (m.won_deals || 0), 0);
+          const totalLost = sd.monthly_sales_trend.reduce((s, m) => s + (m.lost_deals || 0), 0);
+          setWinLossData([
+            { name: 'رابحة', value: totalWon },
+            { name: 'خاسرة', value: totalLost },
+          ]);
+        }
+
+        // Lost reasons breakdown
+        if (Array.isArray(sd.lost_reasons_breakdown)) {
+          setLostReasons(
+            sd.lost_reasons_breakdown
+              .sort((a, b) => (b.count || 0) - (a.count || 0))
+              .map(r => ({ name: r.reason || 'غير محدد', value: r.count || 0 }))
+          );
+        }
+
+        // Cycle time per stage from stage_analytics
+        if (Array.isArray(sd.stage_analytics)) {
+          const STAGE_LABELS = {
+            lead: 'عميل محتمل', qualified: 'مؤهل', proposal: 'عرض سعر',
+            negotiation: 'تفاوض', closed_won: 'رابح', closed_lost: 'خاسر',
+          };
+          setCycleTimeData(
+            sd.stage_analytics
+              .filter(s => s.avg_days_in_stage != null && s.stage !== 'closed_won' && s.stage !== 'closed_lost')
+              .map(s => ({ stage: STAGE_LABELS[s.stage] || s.stage, days: Math.round(s.avg_days_in_stage) }))
+          );
+        }
+      }
+
+      // ── Top sales reps ──
+      if (topRepsRes && topRepsRes.data && Array.isArray(topRepsRes.data)) {
+        setTopReps(topRepsRes.data);
+      }
+
+      // ── Lead source distribution ──
+      if (sourcesRes && sourcesRes.data) {
+        const srcData = sourcesRes.data;
+        if (Array.isArray(srcData.sources)) {
+          setSourceData(srcData.sources.map(s => ({
+            name: s.name,
+            leads: s.leads || 0,
+            converted: s.converted || 0,
+          })));
         }
       }
     } catch {
@@ -158,80 +222,41 @@ export default function CRMAnalyticsPage() {
   /* ── Generate mock/demo data when API returns empty ── */
   const effectiveFunnelData = useMemo(() => {
     if (funnelData.length > 0) return funnelData;
-    return PIPELINE_STAGES.map(s => ({
-      stage: s.key,
-      count: Math.floor(Math.random() * 40) + 5,
-      value: Math.floor(Math.random() * 500000) + 50000,
-    }));
+    return [];
   }, [funnelData]);
 
   const effectiveMonthlyTrend = useMemo(() => {
     if (monthlyTrend.length > 0) return monthlyTrend;
-    const months = [];
-    const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const month = d.toLocaleDateString('ar-SA', { month: 'short' });
-      months.push({
-        month,
-        revenue: Math.floor(Math.random() * 800000) + 100000,
-        deals: Math.floor(Math.random() * 20) + 3,
-      });
-    }
-    return months;
+    return [];
   }, [monthlyTrend]);
 
   const effectiveWinLoss = useMemo(() => {
     if (winLossData.length > 0) return winLossData;
-    return [
-      { name: 'رابح', value: Math.floor(Math.random() * 40) + 30 },
-      { name: 'خاسر', value: Math.floor(Math.random() * 30) + 10 },
-    ];
-  }, [winLossData]);
+    // Fallback: derive from funnel data
+    const won = effectiveFunnelData.find(d => d.stage === 'closed_won')?.count || 0;
+    const lost = effectiveFunnelData.find(d => d.stage === 'closed_lost')?.count || 0;
+    if (won > 0 || lost > 0) return [{ name: 'رابحة', value: won }, { name: 'خاسرة', value: lost }];
+    return [];
+  }, [winLossData, effectiveFunnelData]);
 
   const effectiveLostReasons = useMemo(() => {
     if (lostReasons.length > 0) return lostReasons;
-    return [
-      { name: 'سعر مرتفع', value: Math.floor(Math.random() * 15) + 5 },
-      { name: 'مزود آخر', value: Math.floor(Math.random() * 12) + 3 },
-      { name: 'عدم الحاجة', value: Math.floor(Math.random() * 10) + 2 },
-      { name: 'تأخر في الاستجابة', value: Math.floor(Math.random() * 8) + 1 },
-      { name: 'أخرى', value: Math.floor(Math.random() * 6) + 1 },
-    ].filter(d => d.value > 0);
+    return [];
   }, [lostReasons]);
 
   const effectiveSourceData = useMemo(() => {
     if (sourceData.length > 0) return sourceData;
-    return [
-      { name: 'موقع إلكتروني', leads: Math.floor(Math.random() * 50) + 20, converted: Math.floor(Math.random() * 15) + 5 },
-      { name: 'إحالة', leads: Math.floor(Math.random() * 40) + 15, converted: Math.floor(Math.random() * 12) + 4 },
-      { name: 'مؤتمرات', leads: Math.floor(Math.random() * 30) + 10, converted: Math.floor(Math.random() * 10) + 3 },
-      { name: 'إعلانات', leads: Math.floor(Math.random() * 25) + 8, converted: Math.floor(Math.random() * 8) + 2 },
-      { name: 'LinkedIn', leads: Math.floor(Math.random() * 20) + 5, converted: Math.floor(Math.random() * 6) + 1 },
-      { name: 'أخرى', leads: Math.floor(Math.random() * 15) + 3, converted: Math.floor(Math.random() * 4) + 1 },
-    ];
+    return [];
   }, [sourceData]);
 
   const effectiveTopReps = useMemo(() => {
     if (topReps.length > 0) return topReps;
-    return [
-      { name: 'أحمد محمد', deals: Math.floor(Math.random() * 30) + 10, revenue: Math.floor(Math.random() * 1000000) + 200000, win_rate: Math.floor(Math.random() * 30) + 50 },
-      { name: 'سارة أحمد', deals: Math.floor(Math.random() * 25) + 8, revenue: Math.floor(Math.random() * 800000) + 150000, win_rate: Math.floor(Math.random() * 25) + 45 },
-      { name: 'خالد العمري', deals: Math.floor(Math.random() * 20) + 6, revenue: Math.floor(Math.random() * 600000) + 100000, win_rate: Math.floor(Math.random() * 20) + 40 },
-      { name: 'فاطمة الحسن', deals: Math.floor(Math.random() * 18) + 5, revenue: Math.floor(Math.random() * 500000) + 80000, win_rate: Math.floor(Math.random() * 20) + 35 },
-      { name: 'عبدالله السعيد', deals: Math.floor(Math.random() * 15) + 4, revenue: Math.floor(Math.random() * 400000) + 60000, win_rate: Math.floor(Math.random() * 20) + 30 },
-    ];
+    return [];
   }, [topReps]);
 
   const effectiveCycleTime = useMemo(() => {
     if (cycleTimeData.length > 0) return cycleTimeData;
-    return [
-      { stage: 'عميل محتمل', days: Math.floor(Math.random() * 10) + 3 },
-      { stage: 'مؤهل', days: Math.floor(Math.random() * 15) + 5 },
-      { stage: 'عرض سعر', days: Math.floor(Math.random() * 12) + 4 },
-      { stage: 'تفاوض', days: Math.floor(Math.random() * 20) + 7 },
-      { stage: 'إغلاق', days: Math.floor(Math.random() * 14) + 3 },
-    ];
+    return [];
   }, [cycleTimeData]);
 
   /* ── Derived KPIs ── */

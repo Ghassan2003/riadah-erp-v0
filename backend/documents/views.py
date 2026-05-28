@@ -170,7 +170,7 @@ class DocumentCategoryDeleteView(views.APIView):
         category.is_active = False
         category.save(update_fields=['is_active'])
 
-        return Response({'message': 'تم حذف تصنيف المستندات بنجاح (حذف ناعم)'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DocumentUpdateView(generics.UpdateAPIView):
@@ -222,7 +222,7 @@ class DocumentDeleteView(views.APIView):
             )
 
         document.soft_delete()
-        return Response({'message': 'تم حذف المستند بنجاح (حذف ناعم)'})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DocumentDownloadView(views.APIView):

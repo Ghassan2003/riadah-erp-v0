@@ -88,5 +88,5 @@ def save_forecast_results(model_type, period_type, forecast_df, date_col='ds',
     if objs:
         ForecastResult.objects.bulk_create(objs, batch_size=500, ignore_conflicts=True)
 
-    logger.info(f"Saved {len(objs)} {model_type} forecast results")
+    logger.info("Saved %d %s forecast results", len(objs), model_type)
     return len(objs)

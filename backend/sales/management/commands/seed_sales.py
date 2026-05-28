@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f'Created {created_customers} customer(s). Total: {Customer.objects.count()}'))
 
-        # TODO: inventory module removed - seed data needs redesign
+        # Seed orders use product names directly (inventory module not available)
         # Try to create sample orders with hardcoded product names
         try:
             from users.models import User

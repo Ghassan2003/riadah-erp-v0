@@ -198,8 +198,7 @@ class POSSaleCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # TODO: inventory module removed - product validation and stock deduction disabled
-        # from inventory.models import Product
+        # Product validation disabled (inventory module not available)
 
         serializer = POSSaleCreateSerializer(
             data=request.data,
@@ -258,13 +257,7 @@ class POSSaleCreateView(APIView):
                 notes=validated_data.get('notes', ''),
             )
 
-            # TODO: inventory module removed - product quantity deduction disabled
-            # for detail in item_details:
-            #     product = detail['product_instance']
-            #     current_qty = getattr(product, 'quantity', None)
-            #     if current_qty is not None:
-            #         product.quantity = current_qty - detail['quantity']
-            #         product.save(update_fields=['quantity'])
+            # Stock deduction not available (inventory module removed)
 
             # Update shift totals
             shift.total_sales = (shift.total_sales or 0) + sale.total_amount
@@ -319,17 +312,7 @@ class POSSaleVoidView(APIView):
 
         void_reason = serializer.validated_data['void_reason']
 
-        # TODO: inventory module removed - product quantity restoration disabled
-        # from inventory.models import Product
-        # for item in sale.items:
-        #     try:
-        #         product = Product.objects.get(pk=item['product_id'])
-        #         current_qty = getattr(product, 'quantity', None)
-        #         if current_qty is not None:
-        #             product.quantity = current_qty + item['quantity']
-        #             product.save(update_fields=['quantity'])
-        #     except Product.DoesNotExist:
-        #         pass  # Log warning in production
+        # Stock restoration not available (inventory module removed)
 
         # Void the sale
         sale.void_sale(request.user, void_reason)
@@ -370,8 +353,7 @@ class POSRefundCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # TODO: inventory module removed - product quantity restoration disabled
-        # from inventory.models import Product
+        # Stock restoration not available (inventory module removed)
 
         serializer = POSRefundCreateSerializer(
             data=request.data,
@@ -389,16 +371,7 @@ class POSRefundCreateView(APIView):
         if refund_method == 'original':
             refund_method = sale.payment_method
 
-        # TODO: inventory module removed - product quantity restoration disabled
-        # for item in items:
-        #     try:
-        #         product = Product.objects.get(pk=item.get('product_id'))
-        #         current_qty = getattr(product, 'quantity', None)
-        #         if current_qty is not None:
-        #             product.quantity = current_qty + item.get('quantity', 0)
-        #             product.save(update_fields=['quantity'])
-        #     except Product.DoesNotExist:
-        #         pass
+        # Stock restoration not available (inventory module removed)
 
         # Create refund
         refund = POSRefund.objects.create(
